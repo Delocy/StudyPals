@@ -1,0 +1,1 @@
+../../../../../node_modules/react-native-screens/ios/UIViewController+RNScreens 2.h

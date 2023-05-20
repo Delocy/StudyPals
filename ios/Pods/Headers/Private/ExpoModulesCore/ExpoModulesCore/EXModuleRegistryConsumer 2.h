@@ -1,0 +1,1 @@
+../../../../../../node_modules/expo-modules-core/ios/Protocols/EXModuleRegistryConsumer 2.h

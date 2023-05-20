@@ -1,0 +1,1 @@
+../../../../../node_modules/react-native-safe-area-context/ios/RNCSafeAreaView 2.h
