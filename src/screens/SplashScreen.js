@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/core';
-import { auth } from '../firebase';
+import { auth } from '../../firebase';
 import * as ExpoSplashScreen from 'expo-splash-screen';
 
 const SplashScreen = () => {
