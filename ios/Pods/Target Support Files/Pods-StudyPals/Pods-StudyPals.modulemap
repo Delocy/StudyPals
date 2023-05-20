@@ -1,0 +1,6 @@
+module Pods_StudyPals {
+  umbrella header "Pods-StudyPals-umbrella.h"
+
+  export *
+  module * { export * }
+}

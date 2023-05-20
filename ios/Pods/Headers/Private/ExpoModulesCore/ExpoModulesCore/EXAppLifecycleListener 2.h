@@ -1,0 +1,1 @@
+../../../../../../node_modules/expo-modules-core/ios/Protocols/EXAppLifecycleListener 2.h

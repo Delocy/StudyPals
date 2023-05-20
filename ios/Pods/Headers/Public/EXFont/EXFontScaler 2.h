@@ -1,0 +1,1 @@
+../../../../../node_modules/expo-font/ios/EXFont/EXFontScaler 2.h
