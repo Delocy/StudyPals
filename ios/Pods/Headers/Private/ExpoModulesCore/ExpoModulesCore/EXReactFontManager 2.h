@@ -1,0 +1,1 @@
+../../../../../../node_modules/expo-modules-core/ios/Services/EXReactFontManager 2.h

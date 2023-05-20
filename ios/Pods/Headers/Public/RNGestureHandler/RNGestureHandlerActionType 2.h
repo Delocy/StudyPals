@@ -1,0 +1,1 @@
+../../../../../node_modules/react-native-gesture-handler/ios/RNGestureHandlerActionType 2.h
