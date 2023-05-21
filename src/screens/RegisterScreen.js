@@ -10,6 +10,7 @@ import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { signUpUser } from '../api/auth-api'
 import Toast from '../components/Toast'
+import BackButton from '../components/BackButton'
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState({ value: '', error: '' })
@@ -42,6 +43,7 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <Background>
+        <BackButton goBack={() => navigation.navigate('Login')} />
       <Header>Create Account</Header>
       <TextInput
         label="Name"
