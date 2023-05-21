@@ -5,7 +5,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
-import PomodoroScreen from "../screens/PomodoroScreen";
+import PomodoroScreen from "../screens/Pomodoro/PomodoroScreen";
 import ShareYourWorriesScreen from "../screens/ShareYourWorriesScreen";
 import CalendarScreen from "../screens/CalendarScreen";
 import ProfileScreen from "../screens/ProfileScreen";
