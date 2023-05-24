@@ -1,62 +1,188 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
+import { Text, TextInput, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Agenda } from 'react-native-calendars';
 import { Card, Avatar } from 'react-native-paper';
-import { PropTypes } from 'prop-types';
-import RenderItem from './Render';
 
 const timeToString = (time) => {
   const date = new Date(time);
   return date.toISOString().split('T')[0];
 };
 
+const theme = {
+  backgroundColor: '#ffffff',
+  calendarBackground: '#ffffff',
+  textSectionTitleColor: '#b6c1cd',
+  selectedDayBackgroundColor: '#478C5C',
+  selectedDayTextColor: '#ffffff',
+  todayTextColor: '#478C5C',
+  dayTextColor: '#2d4150',
+  textDisabledColor: '#999999',
+  arrowColor: '#478C5C',
+};
+
 const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
+  const [taskName, setTaskName] = useState('');
+  const [subtitle, setSubtitle] = useState('');
 
   const loadItems = (day) => {
     setTimeout(() => {
-      for (let i = -15; i < 85; i++) {
-        const time = day.timestamp + i * 24 * 60 * 60 * 1000;
-        const strTime = timeToString(time);
-        if (!items[strTime]) {
-          items[strTime] = [];
-          const numItems = Math.floor(Math.random() * 3 + 1);
-          for (let j = 0; j < numItems; j++) {
-            const uniqueKey = `${strTime}_${j}`; // Generate a unique key using the date and index
-            items[strTime].push({
-              key: uniqueKey,
-              name: 'Item for ' + strTime + ' #' + j,
-              height: Math.max(50, Math.floor(Math.random() * 150)),
-            });
-          }
-        }
-      }
-      const newItems = { ...items };
+      const selectedDay = timeToString(day.timestamp);
+      const selectedItems = items[selectedDay] || [];
+      const sortedItems = selectedItems.sort((a, b) => {
+        return new Date(a.time) - new Date(b.time);
+      });
+      const newItems = {
+        [selectedDay]: sortedItems,
+      };
       setItems(newItems);
+  
+      const selectedDate = new Date(selectedDay);
+      const month = selectedDate.toLocaleString('default', { month: 'long' });
+      const year = selectedDate.getFullYear();
+      const formattedSubtitle = `${month} ${year}`;
+      setSubtitle(formattedSubtitle); // Add this line to update the subtitle state
     }, 1000);
   };
+
+  const createTask = () => {
+    const selectedDay = timeToString(Date.now());
+    const task = {
+      name: taskName,
+      time: new Date().toISOString(),
+    };
   
+    const newItems = { ...items };
+  
+    if (newItems[selectedDay]) {
+      newItems[selectedDay].push(task);
+    } else {
+      newItems[selectedDay] = [task];
+    }
+  
+    setItems(newItems);
+    setTaskName('');
+  };
+
+  const renderItem = (item) => {
+    const deleteTask = () => {
+      const selectedDay = timeToString(Date.now());
+      const newItems = { ...items };
+      const tasks = newItems[selectedDay];
+      const updatedTasks = tasks.filter((task) => task.time !== item.time);
+      newItems[selectedDay] = updatedTasks;
+      setItems(newItems);
+    };
+  
+    return (
+      <TouchableOpacity style={{ marginRight: 10, marginTop: 17 }}>
+        <Card>
+          <Card.Content>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Text>{item.name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Avatar.Text label="J" />
+                <TouchableOpacity onPress={deleteTask}>
+                  <Text style={{ color: 'red', marginLeft: 8 }}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Card.Content>
+        </Card>
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerText}>Task</Text>
+        <Text style={styles.subtitleText}>{subtitle}</Text>
+      </View>
       <Agenda
         items={items}
         loadItemsForMonth={loadItems}
-        selected={'2023-05-21'}
-        renderItem={({ item }) => <RenderItem item={item} />}
-        keyExtractor={(item) => item?.key}
-        key={'agenda-key'}
+        selected={timeToString(Date.now())}
+        theme={theme}
       />
+
+      <View style={styles.taskInputContainer}>
+        <TextInput
+          style={styles.taskInput}
+          placeholder="Enter task name"
+          value={taskName}
+          onChangeText={setTaskName}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={createTask}>
+          <Text style={styles.addButtonLabel}>Add Task</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-export default CalendarScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#ffffff', // Set the background color to white
+  },
+  headerContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    margin: 10,
+    backgroundColor: '#ffffff',
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  subtitleText: {
+    fontSize: 16,
+    marginLeft: 8,
+    color: 'gray',
+  },
+  taskInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+  },
+  taskInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#cccccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginRight: 8,
+  },
+  addButton: {
+    backgroundColor: '#478C5C',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  addButtonLabel: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  dayContainer: {
+    width: 36,
+    height: 36,
     justifyContent: 'center',
-    backgroundColor: '#8fcbbc',
+    alignItems: 'center',
+    borderRadius: 4,
+    backgroundColor: '#478C5C',
   },
 });
+
+
+export default CalendarScreen;
