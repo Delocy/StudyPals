@@ -58,7 +58,6 @@ function MainContainer() {
         <Tab.Screen name={profileName} component={ProfileScreen} />
         <Tab.Screen name={calendarName} component={CalendarScreen} />
         <Tab.Screen name={shareYourWorriesName} component={ShareYourWorriesScreen} />
-
       </Tab.Navigator>
     </NavigationContainer>
   );

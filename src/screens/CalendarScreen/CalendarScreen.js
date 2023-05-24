@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Agenda } from 'react-native-calendars';
 import { Card, Avatar } from 'react-native-paper';
+import { useEffect } from 'react';
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -25,6 +29,41 @@ const CalendarScreen = ({ navigation }) => {
   const [taskName, setTaskName] = useState('');
   const [subtitle, setSubtitle] = useState('');
 
+  useEffect(() => {
+    const db = getFirestore();
+  
+    const fetchTasks = async () => {
+      try {
+        //console.log('Fetching tasks...');
+        const tasksSnapshot = await getDocs(collection(db, 'tasks'));
+        const tasksData = tasksSnapshot.docs.map((doc) => doc.data());
+        
+        //console.log('Tasks data:', tasksData);
+  
+        // Convert the tasks data into the required format for the `items` state
+        const newItems = {};
+        tasksData.forEach((task) => {
+          const selectedDay = timeToString(task.time);
+          if (newItems[selectedDay]) {
+            newItems[selectedDay].push(task);
+          } else {
+            newItems[selectedDay] = [task];
+          }
+        });
+  
+        //console.log('New items:', newItems);
+  
+        setItems(newItems);
+      } catch (error) {
+        //console.error('Error fetching tasks: ', error);
+      }
+    };
+  
+    fetchTasks();
+  }, []);
+  
+
+
   const loadItems = (day) => {
     setTimeout(() => {
       const selectedDay = timeToString(day.timestamp);
@@ -45,26 +84,11 @@ const CalendarScreen = ({ navigation }) => {
     }, 1000);
   };
 
-  const createTask = () => {
-    const selectedDay = timeToString(Date.now());
-    const task = {
-      name: taskName,
-      time: new Date().toISOString(),
-    };
-  
-    const newItems = { ...items };
-  
-    if (newItems[selectedDay]) {
-      newItems[selectedDay].push(task);
-    } else {
-      newItems[selectedDay] = [task];
-    }
-  
-    setItems(newItems);
-    setTaskName('');
+  const navigateToAddTaskScreen = () => {
+    navigation.navigate('AddTask');
   };
-
-  const renderItem = (item) => {
+  
+  const renderItem = React.memo(({ item }) => {
     const deleteTask = () => {
       const selectedDay = timeToString(Date.now());
       const newItems = { ...items };
@@ -75,7 +99,11 @@ const CalendarScreen = ({ navigation }) => {
     };
   
     return (
-      <TouchableOpacity style={{ marginRight: 10, marginTop: 17 }}>
+      <Agenda.Item
+        key={item.time}
+        onPress={() => console.log('Item pressed:', item)}
+        style={{ marginRight: 10, marginTop: 17 }}
+      >
         <Card>
           <Card.Content>
             <View
@@ -95,9 +123,9 @@ const CalendarScreen = ({ navigation }) => {
             </View>
           </Card.Content>
         </Card>
-      </TouchableOpacity>
+      </Agenda.Item>
     );
-  };
+  });
 
   return (
     <View style={styles.container}>
@@ -111,18 +139,9 @@ const CalendarScreen = ({ navigation }) => {
         selected={timeToString(Date.now())}
         theme={theme}
       />
-
-      <View style={styles.taskInputContainer}>
-        <TextInput
-          style={styles.taskInput}
-          placeholder="Enter task name"
-          value={taskName}
-          onChangeText={setTaskName}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={createTask}>
-          <Text style={styles.addButtonLabel}>Add Task</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
+        <Text style={styles.addButtonLabel}>Add Task</Text>
+      </TouchableOpacity>
     </View>
   );
 };
