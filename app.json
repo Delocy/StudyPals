@@ -1,20 +1,23 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "StudyPals",
     "slug": "StudyPals",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
+    "privacy": "public",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.orbital.StudyPals"
+      "jsEngine": "jsc"
     },
     "android": {
       "package": "com.orbital.StudyPals",
+      "hermesEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
