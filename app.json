@@ -7,13 +7,12 @@
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
-    "privacy": "public",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "jsEngine": "jsc"
+      "bundleIdentifier": "com.orbital.StudyPals"
     },
     "android": {
       "jsEngine": "jsc",

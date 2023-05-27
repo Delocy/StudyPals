@@ -4,17 +4,7 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>ASN1Decoder.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>DoubleConversion.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EASClient.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -44,37 +34,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>EXJSONUtils.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EXManifests.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>EXSplashScreen.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EXStructuredHeaders.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EXUpdates-EXUpdates.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EXUpdates.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>EXUpdatesInterface.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -130,11 +90,6 @@
 			<false/>
 		</dict>
 		<key>RCTTypeSafety.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>RNCAsyncStorage.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -239,7 +194,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>React-hermes.xcscheme</key>
+		<key>React-jsc.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>
@@ -304,22 +259,7 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
-		<key>hermes-engine.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>libevent.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
 		<key>react-native-safe-area-context.xcscheme</key>
-		<dict>
-			<key>isShown</key>
-			<false/>
-		</dict>
-		<key>react-native-slider.xcscheme</key>
 		<dict>
 			<key>isShown</key>
 			<false/>

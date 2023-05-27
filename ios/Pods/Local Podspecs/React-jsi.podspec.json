@@ -29,10 +29,12 @@
     ],
     "glog": [
 
-    ],
-    "hermes-engine": [
-
     ]
   },
-  "source_files": "jsi/JSIDynamic.{cpp,h}"
+  "source_files": "**/*.{cpp,h}",
+  "exclude_files": [
+    "jsi/jsilib-posix.cpp",
+    "jsi/jsilib-windows.cpp",
+    "**/test/*"
+  ]
 }

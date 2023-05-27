@@ -8,9 +8,7 @@
 import ExpoModulesCore
 import EXConstants
 import ExpoCrypto
-import EASClient
 import ExpoKeepAwake
-import EXUpdates
 import ExpoWebBrowser
 
 @objc(ExpoModulesProvider)
@@ -19,7 +17,6 @@ public class ExpoModulesProvider: ModulesProvider {
     return [
       ConstantsModule.self,
       CryptoModule.self,
-      EASClientModule.self,
       KeepAwakeModule.self,
       WebBrowserModule.self
     ]
@@ -27,13 +24,11 @@ public class ExpoModulesProvider: ModulesProvider {
 
   public override func getAppDelegateSubscribers() -> [ExpoAppDelegateSubscriber.Type] {
     return [
-      ExpoUpdatesAppDelegateSubscriber.self
     ]
   }
 
   public override func getReactDelegateHandlers() -> [ExpoReactDelegateHandlerTupleType] {
     return [
-      (packageName: "expo-updates", handler: ExpoUpdatesReactDelegateHandler.self)
     ]
   }
 }
