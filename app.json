@@ -1,5 +1,6 @@
 {
   "expo": {
+    "jsEngine": "hermes",
     "name": "StudyPals",
     "slug": "StudyPals",
     "version": "1.0.0",
@@ -14,6 +15,7 @@
       "bundleIdentifier": "com.orbital.StudyPals"
     },
     "android": {
+      "jsEngine": "jsc",
       "package": "com.orbital.StudyPals",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
