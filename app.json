@@ -19,7 +19,6 @@
     "android": {
       "jsEngine": "jsc",
       "package": "com.orbital.StudyPals",
-      "hermesEnabled": false,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
