@@ -12,10 +12,12 @@
       "**/*"
     ],
     "ios": {
+      "jsEngine": "jsc",
       "supportsTablet": true,
       "jsEngine": "jsc"
     },
     "android": {
+      "jsEngine": "jsc",
       "package": "com.orbital.StudyPals",
       "hermesEnabled": false,
       "adaptiveIcon": {
