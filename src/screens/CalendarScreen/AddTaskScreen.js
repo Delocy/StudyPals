@@ -26,14 +26,15 @@ const app = initializeApp(firebaseConfig);
 
 const AddTaskScreen = ({ route, navigation }) => {
   const [taskName, setTaskName] = useState('');
-
-  // const { createTask } = route.params;
+  const [taskDescription, setTaskDescription] = useState('');
 
   const handleCreateTask = async () => {
     const db = getFirestore();
     const task = {
       name: taskName,
-      time: new Date().toISOString(), // Use current timestamp instead of serverTimestamp()
+      description: taskDescription,
+      time: new Date().toISOString(),
+      // Add more properties as needed
     };
   
     try {
