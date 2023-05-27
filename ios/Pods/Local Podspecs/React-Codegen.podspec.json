@@ -45,7 +45,7 @@
     "ReactCommon/turbomodule/core": [
 
     ],
-    "React-jsc": [
+    "hermes-engine": [
 
     ]
   }

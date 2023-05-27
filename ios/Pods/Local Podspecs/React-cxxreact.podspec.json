@@ -49,6 +49,9 @@
     ],
     "React-logger": [
       "0.71.7"
+    ],
+    "hermes-engine": [
+
     ]
   }
 }
