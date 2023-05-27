@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
 import { Text, TextInput, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Agenda } from 'react-native-calendars';
+import { Agenda, AgendaList } from 'react-native-calendars';
 import { Card, Avatar } from 'react-native-paper';
 import { useEffect } from 'react';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 
+// const timeToString = (time) => {
+//   const date = new Date(time);
+//   return date.toISOString().split('T')[0];
+// };
+
 const timeToString = (time) => {
   const date = new Date(time);
-  return date.toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
+
 
 const theme = {
   backgroundColor: '#ffffff',
@@ -24,56 +33,85 @@ const theme = {
   arrowColor: '#478C5C',
 };
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
+  authDomain: "studypals-auth.firebaseapp.com",
+  projectId: "studypals-auth",
+  storageBucket: "studypals-auth.appspot.com",
+  messagingSenderId: "848602608150",
+  appId: "1:848602608150:web:214341bebeac9aea74fb37",
+  measurementId: "G-C13G3L9F88"
+};
+
 const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
-  const [taskName, setTaskName] = useState('');
   const [subtitle, setSubtitle] = useState('');
 
+  const navigateToAddTaskScreen = () => {
+    navigation.navigate('AddTask');
+  };
+
   useEffect(() => {
-    const db = getFirestore();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
   
     const fetchTasks = async () => {
       try {
-        //console.log('Fetching tasks...');
         const tasksSnapshot = await getDocs(collection(db, 'tasks'));
         const tasksData = tasksSnapshot.docs.map((doc) => doc.data());
-        
         //console.log('Tasks data:', tasksData);
-  
-        // Convert the tasks data into the required format for the `items` state
+        
         const newItems = {};
+    
         tasksData.forEach((task) => {
           const selectedDay = timeToString(task.time);
+    
           if (newItems[selectedDay]) {
-            newItems[selectedDay].push(task);
+            newItems[selectedDay].push({
+              name: task.name,
+              description: task.description,
+              time: task.time,
+            });
           } else {
-            newItems[selectedDay] = [task];
+            newItems[selectedDay] = [
+              { 
+                name: task.name,
+                description: task.description,
+                time: task.time,
+              },
+            ];
           }
         });
-  
+    
         //console.log('New items:', newItems);
-  
         setItems(newItems);
       } catch (error) {
-        //console.error('Error fetching tasks: ', error);
+        console.error('Error fetching tasks: ', error);
       }
     };
-  
-    fetchTasks();
+    fetchTasks();    
   }, []);
   
-
-
   const loadItems = (day) => {
     setTimeout(() => {
       const selectedDay = timeToString(day.timestamp);
+      // console.log('Selected day:', selectedDay);
+      console.log("#####")
+      console.log(items);
+      console.log(timeToString(Date.now()))
+
       const selectedItems = items[selectedDay] || [];
+      // console.log('Selected items:', selectedItems);
+
       const sortedItems = selectedItems.sort((a, b) => {
         return new Date(a.time) - new Date(b.time);
       });
+
       const newItems = {
         [selectedDay]: sortedItems,
       };
+      //console.log('New items:', newItems);
+
       setItems(newItems);
   
       const selectedDate = new Date(selectedDay);
@@ -84,19 +122,28 @@ const CalendarScreen = ({ navigation }) => {
     }, 1000);
   };
 
-  const navigateToAddTaskScreen = () => {
-    navigation.navigate('AddTask');
+  const list = [{
+    "description": "-",
+    "name": "2",
+    "time": "2023-05-26T02:01:29.111Z",
+  }] 
+
+  const deleteTask = (item) => {
+    const selectedDay = timeToString(Date.now());
+    const newItems = { ...items };
+    const tasks = newItems[selectedDay];
+    const updatedTasks = tasks.filter((task) => task.time !== item.time);
+    newItems[selectedDay] = updatedTasks;
+    setItems(newItems);
   };
+
+  const renderItem = ({ item }) => {
+    if (!item) { //|| !item.name || !item.description || !item.time
+      //console.log('Invalid item:', item);
+      return null; // Return early if item or required properties are missing
+    }
   
-  const renderItem = React.memo(({ item }) => {
-    const deleteTask = () => {
-      const selectedDay = timeToString(Date.now());
-      const newItems = { ...items };
-      const tasks = newItems[selectedDay];
-      const updatedTasks = tasks.filter((task) => task.time !== item.time);
-      newItems[selectedDay] = updatedTasks;
-      setItems(newItems);
-    };
+    //console.log('Rendering item:', item);
   
     return (
       <Agenda.Item
@@ -116,7 +163,7 @@ const CalendarScreen = ({ navigation }) => {
               <Text>{item.name}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Avatar.Text label="J" />
-                <TouchableOpacity onPress={deleteTask}>
+                <TouchableOpacity onPress={() => deleteTask(item)}>
                   <Text style={{ color: 'red', marginLeft: 8 }}>Delete</Text>
                 </TouchableOpacity>
               </View>
@@ -125,7 +172,7 @@ const CalendarScreen = ({ navigation }) => {
         </Card>
       </Agenda.Item>
     );
-  });
+  };
 
   return (
     <View style={styles.container}>
@@ -136,9 +183,27 @@ const CalendarScreen = ({ navigation }) => {
       <Agenda
         items={items}
         loadItemsForMonth={loadItems}
-        selected={timeToString(Date.now())}
+        //selected={timeToString(Date.now()).toString()}
+        selected="2023-05-26"
         theme={theme}
+        renderItem={(item, isFirst) => (
+          <TouchableOpacity style={styles.item}>
+            <Text style={styles.itemText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
       />
+      {/* <Agenda
+        //selected="2023-05-26"
+        items={{
+          '2022-12-01': [{name: 'Cycling'}, {name: 'Walking'}, {name: 'Running'}],
+          '2022-12-02': [{name: 'Writing'}]
+        }}
+        renderItem={(item, isFirst) => (
+          <TouchableOpacity style={styles.item}>
+            <Text style={styles.itemText}>{item.name}</Text>
+          </TouchableOpacity>
+        )}
+      /> */}
       <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
         <Text style={styles.addButtonLabel}>Add Task</Text>
       </TouchableOpacity>
