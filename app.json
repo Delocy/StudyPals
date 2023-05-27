@@ -12,7 +12,6 @@
       "**/*"
     ],
     "ios": {
-      "jsEngine": "jsc",
       "supportsTablet": true,
       "jsEngine": "jsc"
     },
