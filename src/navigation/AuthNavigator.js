@@ -7,6 +7,7 @@ import TabNavigator from './TabNavigator';
 import RegisterScreen from '../screens/RegisterScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import AuthLoadingScreen from '../screens/AuthLoadingScreen';
+import AddTaskScreen from '../screens/CalendarScreen/AddTaskScreen';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -19,6 +20,7 @@ function AuthNavigator() {
         <Stack.Screen name='Register' options={{ headerShown: false }} component={RegisterScreen} />
         <Stack.Screen name='Home' options={{ headerShown: false }} component={TabNavigator} />
         <Stack.Screen name='ResetPassword' options={{ headerShown: false }} component={ResetPasswordScreen} />
+        <Stack.Screen name="AddTask" component={AddTaskScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
