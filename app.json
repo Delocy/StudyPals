@@ -11,6 +11,7 @@
       "**/*"
     ],
     "ios": {
+      "jsEngine": "jsc",
       "supportsTablet": true,
       "bundleIdentifier": "com.orbital.StudyPals"
     },
