@@ -21,11 +21,10 @@
   "header_dir": "React",
   "frameworks": "JavaScriptCore",
   "pod_target_xcconfig": {
-    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/RCT-Folly\" \"${PODS_ROOT}/Headers/Public/FlipperKit\" \"$(PODS_ROOT)/Headers/Public/ReactCommon\" \"$(PODS_ROOT)/Headers/Public/React-RCTFabric\" \"$(PODS_ROOT)/Headers/Public/React-hermes\" \"$(PODS_ROOT)/Headers/Public/hermes-engine\"",
+    "HEADER_SEARCH_PATHS": "\"$(PODS_TARGET_SRCROOT)/ReactCommon\" \"$(PODS_ROOT)/boost\" \"$(PODS_ROOT)/DoubleConversion\" \"$(PODS_ROOT)/RCT-Folly\" \"${PODS_ROOT}/Headers/Public/FlipperKit\" \"$(PODS_ROOT)/Headers/Public/ReactCommon\" \"$(PODS_ROOT)/Headers/Public/React-RCTFabric\"",
     "DEFINES_MODULE": "YES",
     "GCC_PREPROCESSOR_DEFINITIONS": "RCT_METRO_PORT=${RCT_METRO_PORT}",
-    "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
-    "FRAMEWORK_SEARCH_PATHS": "\"$(PODS_CONFIGURATION_BUILD_DIR)/React-hermes\""
+    "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
   },
   "user_target_xcconfig": {
     "HEADER_SEARCH_PATHS": "\"$(PODS_ROOT)/Headers/Private/React-Core\""
@@ -53,10 +52,7 @@
     "glog": [
 
     ],
-    "React-hermes": [
-
-    ],
-    "hermes-engine": [
+    "React-jsc": [
 
     ]
   },
@@ -70,8 +66,7 @@
         "React/Fabric/**/*",
         "React/FBReactNativeSpec/**/*",
         "React/Tests/**/*",
-        "React/Inspector/**/*",
-        "React/CxxBridge/JSCExecutorFactory.{h,mm}"
+        "React/Inspector/**/*"
       ],
       "private_header_files": "React/Cxx*/*.h"
     },
