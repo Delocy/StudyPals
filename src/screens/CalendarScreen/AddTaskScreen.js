@@ -34,8 +34,13 @@ const AddTaskScreen = ({ route, navigation }) => {
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
-  const availableTags = ['Office', 'Home', 'Personal', 'Urgent'];
-
+  const availableTags = [
+    { name: 'Office', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
+    { name: 'Home', color: '#FFEFEB', selectedColor: '#F0A58E', textColor: '#F0A58E', selectedTextColor: '#FFFFFF' },
+    { name: 'Personal', color: '#D1FEFF', selectedColor: '#1EC1C3', textColor: '#1EC1C3', selectedTextColor: '#FFFFFF' },
+    { name: 'Urgent', color: '#FFE9ED', selectedColor: '#F57C96', textColor: '#F57C96', selectedTextColor: '#FFFFFF' },
+  ];
+  
 
   const formatTime = (time) => {
     if (!time) return '';
@@ -44,7 +49,12 @@ const AddTaskScreen = ({ route, navigation }) => {
 
   const handleCreateTask = async () => {
     // Perform form validation
-    if (!taskName || !taskDescription || !taskStartTime || !taskEndTime || selectedTags.length === 0) {
+    if (
+      !taskName ||
+      !taskDescription ||
+      !taskStartTime ||
+      !taskEndTime
+    ) {
       // If any required fields are empty, display an error message or handle the validation error
       // For example, you can show an alert or set an error state variable
       alert('Please fill all required fields');
@@ -103,7 +113,19 @@ const AddTaskScreen = ({ route, navigation }) => {
     } else {
       setSelectedTags([...selectedTags, tag]);
     }
+  };
+  
+  const isTagSelected = (tag) => {
+    return selectedTags.includes(tag);
+  };
+
+  const getTagTextColor = (tag) => {
+    return isTagSelected(tag) ? '#FFFFFF' : availableTags.find((t) => t.name === tag).textColor;
   };  
+
+  const getTagBackgroundColor = (tag) => {
+    return isTagSelected(tag) ? availableTags.find((t) => t.name === tag).selectedColor : availableTags.find((t) => t.name === tag).color;
+  };
   
   return (
     <View style={styles.container}>
@@ -163,15 +185,21 @@ const AddTaskScreen = ({ route, navigation }) => {
         <Text style={styles.label}>Tags:</Text>
         <View style={styles.tagButtonContainer}>
           {availableTags.map((tag) => (
-            <Tag
-              key={tag}
-              text={tag}
-              selected={selectedTags.includes(tag)}
-              onPress={() => toggleTag(tag)}
-            />
+            <TouchableOpacity
+              key={tag.name}
+              style={[
+                styles.tagButton,
+                isTagSelected(tag.name) ? styles.selectedTagButton : null,
+                { backgroundColor: getTagBackgroundColor(tag.name) },
+              ]}
+              onPress={() => toggleTag(tag.name)}
+            >
+              <Text style={[styles.tagButtonText, { color: getTagTextColor(tag.name) }]}>{tag.name}</Text>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
+
       
       <TouchableOpacity style={styles.addButton} onPress={handleCreateTask}>
         <Text style={styles.addButtonLabel}>Create Task</Text>
@@ -240,6 +268,19 @@ const styles = StyleSheet.create({
   selectedTimeText: {
     fontWeight: 'normal',
   },
+  tagButton: {
+    backgroundColor: '#CCCCCC',
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    margin: 4,
+  },
+  selectedTagButton: {
+    backgroundColor: '#478C5C',
+  },
+  tagButtonText: {
+    color: '#FFFFFF',
+  },  
 });
 
 export default AddTaskScreen;

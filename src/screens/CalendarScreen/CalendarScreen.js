@@ -5,7 +5,7 @@ import { Agenda, AgendaEntry, AgendaSchedule, DateData } from 'react-native-cale
 import { Card, Avatar } from 'react-native-paper';
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -24,6 +24,7 @@ const theme = {
   arrowColor: '#478C5C',
 };
 
+
 const firebaseConfig = {
   apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
   authDomain: "studypals-auth.firebaseapp.com",
@@ -38,6 +39,7 @@ const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
   const [subtitle, setSubtitle] = useState('');
   const [selectedDate, setSelectedDate] = useState(timeToString(Date.now()));
+  const [markedDates, setMarkedDates] = useState({});
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -49,8 +51,8 @@ const CalendarScreen = ({ navigation }) => {
   const loadTasks = async () => {
     try {
       const tasksSnapshot = await getDocs(collection(db, 'tasks'));
-  
       const formattedItems = {};
+      const formattedMarkedDates = {};
   
       tasksSnapshot.forEach((doc) => {
         const task = doc.data();
@@ -61,6 +63,7 @@ const CalendarScreen = ({ navigation }) => {
         }
   
         formattedItems[strTime].push({
+          id: doc.id,
           name: task.name,
           description: task.description,
           startTime: task.startTime,
@@ -68,21 +71,25 @@ const CalendarScreen = ({ navigation }) => {
           time: task.time,
           tags: task.tags || []
         });
+        formattedMarkedDates[strTime] = { 
+          marked: true,
+          dotColor: '#478C5C',
+          // selectedDotColor: '#ffffff',
+        };
+      });
+
+      // Sort the tasks by start time in ascending order
+      const sortedItems = {};
+      Object.keys(formattedItems).forEach((date) => {
+        sortedItems[date] = formattedItems[date].sort((a, b) => a.startTime.seconds - b.startTime.seconds);
       });
   
-      setItems(formattedItems);
+      setItems(sortedItems);
+      setMarkedDates(formattedMarkedDates);
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
   };
-
-  renderEmptyDate = () => {
-    return (
-      <View style={styles.emptyDate}>
-        <Text>This is empty date!</Text>
-      </View>
-    );
-  }
 
   const navigateToAddTaskScreen = () => {
     navigation.navigate('AddTask', { date: selectedDate });
@@ -91,34 +98,52 @@ const CalendarScreen = ({ navigation }) => {
   const renderItem = (item) => {
     const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
     const endTime = new Date(item.endTime.seconds * 1000);
-
+  
     const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
+  
+    const handleDelete = async () => {
+      try {
+        const taskRef = doc(db, 'tasks', item.id); // Use the correct document ID
+        await deleteDoc(taskRef);
+        loadTasks();
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    };
+    
+    
     return (
-      <TouchableOpacity style={{ marginRight: 10, marginTop: 17 }}>
-        <Card>
+      <TouchableOpacity style={{ marginLeft:20, marginRight: 20, marginTop: 20 }}>
+        <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardTextContainer}>
               <Text style={styles.cardText}>{item.name}</Text>
-              <Text style={styles.cardText}>{item.description.toString()}</Text>
-              <Text>{startTimeString} - {endTimeString}</Text>
+              <Text style={styles.cardTextDescription}>{item.description.toString()}</Text>
+              <Text style={styles.cardTextDescription}>{startTimeString} - {endTimeString}</Text>
               <View style={{ flexDirection: 'row', marginTop: 8 }}>
                 {item.tags.map((tag, index) => (
                   <Tag key={index} text={tag} />
                 ))}
               </View>
             </View>
-            <Avatar.Image
-              source={require('./ImageLogo/sunflower.jpeg')}
-              size={40}
-            />
+            <TouchableOpacity onPress={handleDelete}>
+              <Text style={styles.deleteButton}>Delete</Text>
+            </TouchableOpacity>
           </Card.Content>
         </Card>
       </TouchableOpacity>
     );
   };
+  
 
+  const renderEmptyDate = () => {
+    return (
+      <View style={styles.emptyDate}>
+        <Text style={styles.emptyDateText}>No tasks for this date</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -128,11 +153,15 @@ const CalendarScreen = ({ navigation }) => {
       </View>
       <Agenda
         items={items}
+        markedDates={markedDates}
         theme={theme}
         loadItemsForMonth={loadTasks}
         selected={timeToString(Date.now())}
         renderItem={renderItem}
-        renderEmptyDate={renderEmptyDate}
+        renderEmptyData={renderEmptyDate}
+        renderDay={(day, item) => {
+          return <View/>;
+        }}
         onDayPress={(date) => {
           setSelectedDate(date.dateString);
           const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
@@ -140,9 +169,11 @@ const CalendarScreen = ({ navigation }) => {
         }}
         showOnlySelectedDayItems
       />
-      <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
-        <Text style={styles.addButtonLabel}>Add Task</Text>
-      </TouchableOpacity>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
+          <Text style={styles.addButtonLabel}>Add Task</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -158,6 +189,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     margin: 10,
     backgroundColor: '#ffffff',
+  },
+  bottomContainer: {
+    backgroundColor: "#F2F4F4",
   },
   headerText: {
     fontSize: 24,
@@ -194,10 +228,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+    margin: 20, // Adjust the margin top value as needed
+    alignSelf: 'center', // Align the button to the center horizontally
   },
   addButtonLabel: {
     color: '#ffffff',
-    fontWeight: 'bold',
+    fontSize: 16,
+    marginHorizontal: 15,
+    marginVertical: 3,
   },
   dayContainer: {
     width: 36,
@@ -219,6 +257,11 @@ const styles = StyleSheet.create({
   },
   cardText: {
     marginBottom: 8,
+    fontSize: 18,
+  },
+  cardTextDescription: {
+    marginBottom: 8,
+    color: '#9DA3B0',
   },
   tagContainer: {
     flexDirection: 'row',
@@ -236,6 +279,27 @@ const styles = StyleSheet.create({
   tagText: {
     color: '#000000',
     fontSize: 12,
+  },
+  deleteButton: {
+    color: 'red',
+    fontSize: 16,
+  },
+  emptyDate: {
+    height: 15,
+    flex: 1,
+    paddingTop: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyDateText: {
+    fontSize: 16,
+    color: 'gray',
+  },
+  card: {
+    backgroundColor: '#F9FAFD',
+    borderRadius: 15,
+    elevation: 2,
+    marginBottom: 20,
   },
 });
 

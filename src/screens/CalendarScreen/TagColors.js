@@ -28,8 +28,14 @@ const Tag = ({ text }) => {
   }
 
   return (
-    <View style={{ backgroundColor: color, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 20, marginVertical: 4, marginRight: 8 }}>
-      <Text style={{ color: textColor, fontSize: 12, marginVertical: 2, marginHorizontal: 7 }}>{text}</Text>
+    <View style={{ 
+      backgroundColor: color, 
+      borderRadius: 18,
+      paddingVertical: 7,
+      paddingHorizontal: 15,  
+      marginRight: 8 ,
+      justifyContent:'center',}}>
+      <Text style={{ color: textColor, marginVertical: 2, marginHorizontal: 7 }}>{text}</Text>
     </View>
   );
 };
