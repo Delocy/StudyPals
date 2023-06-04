@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import Tag from './TagColors';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import TimePicker from 'react-native-modal-datetime-picker';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore,collection, addDoc } from "firebase/firestore";
@@ -27,13 +29,36 @@ const app = initializeApp(firebaseConfig);
 const AddTaskScreen = ({ route, navigation }) => {
   const [taskName, setTaskName] = useState('');
   const [taskDescription, setTaskDescription] = useState('');
+  const [taskStartTime, setTaskStartTime] = useState(null);
+  const [taskEndTime, setTaskEndTime] = useState(null);
+  const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
+  const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
+  const [selectedTags, setSelectedTags] = useState([]);
+  const availableTags = ['Office', 'Home', 'Personal', 'Urgent'];
+
+
+  const formatTime = (time) => {
+    if (!time) return '';
+    return time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  };
 
   const handleCreateTask = async () => {
+    // Perform form validation
+    if (!taskName || !taskDescription || !taskStartTime || !taskEndTime || selectedTags.length === 0) {
+      // If any required fields are empty, display an error message or handle the validation error
+      // For example, you can show an alert or set an error state variable
+      alert('Please fill all required fields');
+      return;
+    }
+    
     const db = getFirestore();
     const task = {
       name: taskName,
       description: taskDescription,
-      time: new Date().toISOString(),
+      startTime: taskStartTime,
+      endTime: taskEndTime,
+      time: route.params.date,
+      tags: selectedTags,
       // Add more properties as needed
     };
   
@@ -45,6 +70,40 @@ const AddTaskScreen = ({ route, navigation }) => {
       console.error('Error adding task: ', error);
     }
   };
+
+  const showStartTimePicker = () => {
+    setStartTimePickerVisible(true);
+  };
+
+  const hideStartTimePicker = () => {
+    setStartTimePickerVisible(false);
+  };
+
+  const handleStartTimeConfirm = (time) => {
+    setTaskStartTime(time);
+    hideStartTimePicker();
+  };
+
+  const showEndTimePicker = () => {
+    setEndTimePickerVisible(true);
+  };
+
+  const hideEndTimePicker = () => {
+    setEndTimePickerVisible(false);
+  };
+
+  const handleEndTimeConfirm = (time) => {
+    setTaskEndTime(time);
+    hideEndTimePicker();
+  };
+
+  const toggleTag = (tag) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
+  };  
   
   return (
     <View style={styles.container}>
@@ -55,7 +114,65 @@ const AddTaskScreen = ({ route, navigation }) => {
         onChangeText={setTaskName}
         placeholder="Enter task name"
       />
+      <Text style={styles.label}>Task Description:</Text>
+      <TextInput
+        style={styles.input}
+        value={taskDescription}
+        onChangeText={setTaskDescription}
+        placeholder="Enter task description"
+      />
+      <Text style={styles.label}>Time:</Text>
+      {/* Display the selected task time */}
+      <View style={styles.timeContainer}>
+        <View style={styles.timeInputContainer}>
+          <Text style={[styles.label, styles.timeLabel]}>Start Time:</Text>
+          <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
+            <Text style={[styles.timeText, taskStartTime && styles.selectedTimeText]}>
+              {taskStartTime ? formatTime(taskStartTime) : 'Select Start Time'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
+        <View style={styles.timeInputContainer}>
+          <Text style={[styles.label, styles.timeLabel]}>End Time:</Text>
+          <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
+            <Text style={[styles.timeText, taskEndTime && styles.selectedTimeText]}>
+              {taskEndTime ? formatTime(taskEndTime) : 'Select End Time'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+
+      {/* Time picker component */}
+      <TimePicker
+        isVisible={isStartTimePickerVisible}
+        mode="time"
+        onConfirm={handleStartTimeConfirm}
+        onCancel={hideStartTimePicker}
+      />
+
+      <TimePicker
+        isVisible={isEndTimePickerVisible}
+        mode="time"
+        onConfirm={handleEndTimeConfirm}
+        onCancel={hideEndTimePicker}
+      />
+
+      <View style={styles.tagContainer}>
+        <Text style={styles.label}>Tags:</Text>
+        <View style={styles.tagButtonContainer}>
+          {availableTags.map((tag) => (
+            <Tag
+              key={tag}
+              text={tag}
+              selected={selectedTags.includes(tag)}
+              onPress={() => toggleTag(tag)}
+            />
+          ))}
+        </View>
+      </View>
+      
       <TouchableOpacity style={styles.addButton} onPress={handleCreateTask}>
         <Text style={styles.addButtonLabel}>Create Task</Text>
       </TouchableOpacity>
@@ -66,8 +183,8 @@ const AddTaskScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFFFFF',
+    padding: 25,
   },
   label: {
     fontSize: 16,
@@ -75,21 +192,53 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: '#cccccc',
+    borderColor: '#CCCCCC',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 16,
   },
+  tagContainer: {
+    marginBottom: 16,
+  },
+  tagButtonContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    justifyContent: 'center',
+  },
   addButton: {
     backgroundColor: '#478C5C',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 20,
+    borderRadius: 15,
+    marginTop: 'auto',
+    marginBottom: 100,
+    marginLeft: 40,
+    marginRight: 40,
   },
   addButtonLabel: {
-    color: '#ffffff',
+    color: '#FFFFFF',
     fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  timeInputContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  timeLabel: {
+    marginRight: 8,
+  },
+  timeText: {
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  selectedTimeText: {
+    fontWeight: 'normal',
   },
 });
 
