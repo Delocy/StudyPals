@@ -4,8 +4,9 @@ import { Text, Image, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Agenda, AgendaEntry, AgendaSchedule, DateData } from 'react-native-calendars';
 import { Card, Avatar } from 'react-native-paper';
 import { initializeApp } from "firebase/app";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, query, where ,collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -43,6 +44,8 @@ const CalendarScreen = ({ navigation }) => {
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const auth = getAuth();
+  const user = auth.currentUser;
 
   useEffect(() => {
     loadTasks();
@@ -50,7 +53,8 @@ const CalendarScreen = ({ navigation }) => {
 
   const loadTasks = async () => {
     try {
-      const tasksSnapshot = await getDocs(collection(db, 'tasks'));
+      const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
+      const tasksSnapshot = await getDocs(q);
       const formattedItems = {};
       const formattedMarkedDates = {};
   
