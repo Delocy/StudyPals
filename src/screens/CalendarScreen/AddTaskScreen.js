@@ -5,6 +5,7 @@ import TimePicker from 'react-native-modal-datetime-picker';
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore,collection, addDoc } from "firebase/firestore";
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 //import { getAnalytics } from "firebase/analytics";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -24,6 +25,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+
 // const analytics = getAnalytics(app);
 
 const AddTaskScreen = ({ route, navigation }) => {
@@ -60,22 +63,28 @@ const AddTaskScreen = ({ route, navigation }) => {
       alert('Please fill all required fields');
       return;
     }
-    
-    const db = getFirestore();
-    const task = {
-      name: taskName,
-      description: taskDescription,
-      startTime: taskStartTime,
-      endTime: taskEndTime,
-      time: route.params.date,
-      tags: selectedTags,
-      // Add more properties as needed
-    };
-  
     try {
-      await addDoc(collection(db, 'tasks'), task);
-      console.log('Task added successfully!');
-      navigation.goBack();
+      const user = auth.currentUser;
+      if (user) {
+        const db = getFirestore();
+        const task = {
+          name: taskName,
+          description: taskDescription,
+          startTime: taskStartTime,
+          endTime: taskEndTime,
+          time: route.params.date,
+          tags: selectedTags,
+          // Add more properties as needed
+          userId: user.uid, // Include the user's ID
+        };
+  
+        await addDoc(collection(db, 'tasks'), task);
+        console.log('Task added successfully!');
+        navigation.goBack();
+      } else {
+        // User is not logged in, handle the error or redirect to the login screen
+        console.log('User not logged in');
+      }
     } catch (error) {
       console.error('Error adding task: ', error);
     }
