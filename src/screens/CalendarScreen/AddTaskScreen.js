@@ -59,7 +59,6 @@ const AddTaskScreen = ({ route, navigation }) => {
       !taskEndTime
     ) {
       // If any required fields are empty, display an error message or handle the validation error
-      // For example, you can show an alert or set an error state variable
       alert('Please fill all required fields');
       return;
     }
@@ -179,6 +178,7 @@ const AddTaskScreen = ({ route, navigation }) => {
       <TimePicker
         isVisible={isStartTimePickerVisible}
         mode="time"
+        minuteInterval={5}
         onConfirm={handleStartTimeConfirm}
         onCancel={hideStartTimePicker}
       />
@@ -186,6 +186,7 @@ const AddTaskScreen = ({ route, navigation }) => {
       <TimePicker
         isVisible={isEndTimePickerVisible}
         mode="time"
+        minuteInterval={5}
         onConfirm={handleEndTimeConfirm}
         onCancel={hideEndTimePicker}
       />
