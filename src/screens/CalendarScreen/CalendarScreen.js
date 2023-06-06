@@ -6,7 +6,7 @@ import { Card, Avatar } from 'react-native-paper';
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, query, where ,collection, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { getFirestore, query, where ,collection, getDocs, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -54,49 +54,54 @@ const CalendarScreen = ({ navigation }) => {
   const loadTasks = async () => {
     try {
       const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
-      const tasksSnapshot = await getDocs(q);
-      const formattedItems = {};
-      const formattedMarkedDates = {};
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const formattedItems = {};
+        const formattedMarkedDates = {};
   
-      tasksSnapshot.forEach((doc) => {
-        const task = doc.data();
-        const strTime = timeToString(task.time);
+        snapshot.forEach((doc) => {
+          const task = doc.data();
+          const strTime = timeToString(task.time);
   
-        if (!formattedItems[strTime]) {
-          formattedItems[strTime] = [];
-        }
+          if (!formattedItems[strTime]) {
+            formattedItems[strTime] = [];
+          }
   
-        formattedItems[strTime].push({
-          id: doc.id,
-          name: task.name,
-          description: task.description,
-          startTime: task.startTime,
-          endTime: task.endTime,
-          time: task.time,
-          tags: task.tags || []
+          formattedItems[strTime].push({
+            id: doc.id,
+            name: task.name,
+            description: task.description,
+            startTime: task.startTime,
+            endTime: task.endTime,
+            time: task.time,
+            tags: task.tags || [],
+          });
+          formattedMarkedDates[strTime] = {
+            marked: true,
+            dotColor: '#478C5C',
+            // selectedDotColor: '#ffffff',
+          };
         });
-        formattedMarkedDates[strTime] = { 
-          marked: true,
-          dotColor: '#478C5C',
-          // selectedDotColor: '#ffffff',
-        };
-      });
-
-      // Sort the tasks by start time in ascending order
-      const sortedItems = {};
-      Object.keys(formattedItems).forEach((date) => {
-        sortedItems[date] = formattedItems[date].sort((a, b) => a.startTime.seconds - b.startTime.seconds);
+  
+        // Sort the tasks by start time in ascending order
+        const sortedItems = {};
+        Object.keys(formattedItems).forEach((date) => {
+          sortedItems[date] = formattedItems[date].sort(
+            (a, b) => a.startTime.seconds - b.startTime.seconds
+          );
+        });
+  
+        setItems(sortedItems);
+        setMarkedDates(formattedMarkedDates);
       });
   
-      setItems(sortedItems);
-      setMarkedDates(formattedMarkedDates);
+      return unsubscribe; // Return the unsubscribe function to clean up the subscription
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
-  };
+  };  
 
   const navigateToAddTaskScreen = () => {
-    navigation.navigate('AddTask', { date: selectedDate });
+    navigation.navigate('AddTask', { date: selectedDate, existingTasks: items });
   };
 
   const renderItem = (item) => {
