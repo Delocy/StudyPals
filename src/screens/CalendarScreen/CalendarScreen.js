@@ -1,10 +1,12 @@
-import React, { useState, useEffect, PureComponent } from 'react';
+import React, { useState, useEffect } from 'react';
 import Tag from './TagColors';
-import { Text, Image, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Agenda, AgendaEntry, AgendaSchedule, DateData } from 'react-native-calendars';
 import { Card, Avatar } from 'react-native-paper';
 import { initializeApp } from "firebase/app";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons'; 
 import { getAnalytics } from "firebase/analytics";
 import { getFirestore, query, where ,collection, getDocs, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 
@@ -41,11 +43,24 @@ const CalendarScreen = ({ navigation }) => {
   const [subtitle, setSubtitle] = useState('');
   const [selectedDate, setSelectedDate] = useState(timeToString(Date.now()));
   const [markedDates, setMarkedDates] = useState({});
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth();
   const user = auth.currentUser;
+
+  const openModal = (task, taskId) => {
+    setSelectedTask(task);
+    setSelectedTaskId(taskId);
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
 
   useEffect(() => {
     loadTasks();
@@ -101,7 +116,23 @@ const CalendarScreen = ({ navigation }) => {
   };  
 
   const navigateToAddTaskScreen = () => {
-    navigation.navigate('AddTask', { date: selectedDate, existingTasks: items });
+    navigation.navigate('AddTask', { date: selectedDate });
+  };
+
+  const navigateToEditTaskScreen = () => {
+    navigation.navigate('EditTask', { task: selectedTask });
+    closeModal();
+  };
+
+  const handleDelete = async () => {
+    try {
+      const taskRef = doc(db, 'tasks', selectedTaskId); // Use the correct document ID
+      await deleteDoc(taskRef);
+      closeModal();
+      loadTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   const renderItem = (item) => {
@@ -110,20 +141,9 @@ const CalendarScreen = ({ navigation }) => {
   
     const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  
-    const handleDelete = async () => {
-      try {
-        const taskRef = doc(db, 'tasks', item.id); // Use the correct document ID
-        await deleteDoc(taskRef);
-        loadTasks();
-      } catch (error) {
-        console.error('Error deleting task:', error);
-      }
-    };
-    
     
     return (
-      <TouchableOpacity style={{ marginLeft:20, marginRight: 20, marginTop: 20 }}>
+      <TouchableOpacity style={{ marginLeft:20, marginRight: 20, marginTop: 20 }} onPress={() => openModal(item, item.id)}>
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardTextContainer}>
@@ -136,9 +156,6 @@ const CalendarScreen = ({ navigation }) => {
                 ))}
               </View>
             </View>
-            <TouchableOpacity onPress={handleDelete}>
-              <Text style={styles.deleteButton}>Delete</Text>
-            </TouchableOpacity>
           </Card.Content>
         </Card>
       </TouchableOpacity>
@@ -183,6 +200,33 @@ const CalendarScreen = ({ navigation }) => {
           <Text style={styles.addButtonLabel}>Add Task</Text>
         </TouchableOpacity>
       </View>
+      <Modal visible={isModalVisible} animationType="fade" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalTitleWithCancel}>
+              <Text style={styles.selectedTaskTitle}>{selectedTask ? selectedTask.name : ''}</Text>
+              <TouchableOpacity onPress={closeModal}>
+              <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={[styles.modalOption, styles.editButton]} onPress={navigateToEditTaskScreen}>
+                <View style={styles.buttonContent}>
+                  <Feather name="edit" size={24} color="white" />
+                  <Text style={styles.buttonText}>Edit</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalOption, styles.deleteButton]} onPress={handleDelete}>
+                <View style={styles.buttonContent}>
+                  <MaterialIcons name="delete-outline" size={24} color="white" />
+                  <Text style={styles.buttonText}>Delete</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -310,6 +354,68 @@ const styles = StyleSheet.create({
     elevation: 2,
     marginBottom: 20,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 27,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 40, 
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    width: '90%',
+  },
+  modalOption: {
+    borderBottomWidth: 1,
+  },
+  modalOptionText: {
+    fontSize: 16,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    marginBottom: 10,
+  },
+  modalTitleWithCancel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 15,
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+  },
+  editButton: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: '#cccccc',
+    marginRight: 10,
+    backgroundColor: '#478C5C',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  deleteButton: {
+    flex: 1,
+    marginLeft: 10,
+    backgroundColor: 'red',
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  buttonContent: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  selectedTaskTitle: {
+    fontSize: 20,
+  }
 });
 
 
