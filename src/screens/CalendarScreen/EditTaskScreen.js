@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import Tag from './TagColors';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import TimePicker from 'react-native-modal-datetime-picker';
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore,collection, addDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, updateDoc, doc, Timestamp } from "firebase/firestore";
+import { getAuth } from 'firebase/auth';
 //import { getAnalytics } from "firebase/analytics";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -27,8 +25,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 
-// const analytics = getAnalytics(app);
-
 const EditTaskScreen = ({ route, navigation }) => {
   const { task } = route.params;
 
@@ -39,6 +35,12 @@ const EditTaskScreen = ({ route, navigation }) => {
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState(task.tags || []);
+  const availableTags = [
+    { name: 'Office', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
+    { name: 'Home', color: '#FFEFEB', selectedColor: '#F0A58E', textColor: '#F0A58E', selectedTextColor: '#FFFFFF' },
+    { name: 'Personal', color: '#D1FEFF', selectedColor: '#1EC1C3', textColor: '#1EC1C3', selectedTextColor: '#FFFFFF' },
+    { name: 'Urgent', color: '#FFE9ED', selectedColor: '#F57C96', textColor: '#F57C96', selectedTextColor: '#FFFFFF' },
+  ];
 
   const handleUpdateTask = async () => {
     try {
@@ -60,43 +62,57 @@ const EditTaskScreen = ({ route, navigation }) => {
     }
   };
 
-  // Function to handle tag selection
-  const handleTagSelection = (tag) => {
-    const isSelected = selectedTags.includes(tag);
-    if (isSelected) {
+  const formatTime = (time) => {
+    if (!time) return '';
+    if (time instanceof Timestamp) {
+        convertedTime = time.toDate(); // convert firebase time to date
+        return convertedTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } else {
+        return time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+  };
+
+  const toggleTag = (tag) => {
+    if (selectedTags.includes(tag)) {
       setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag));
     } else {
       setSelectedTags([...selectedTags, tag]);
     }
   };
+  
+  const isTagSelected = (tag) => {
+    return selectedTags.includes(tag);
+  };
 
-  // Function to show the start time picker
+  const getTagTextColor = (tag) => {
+    return isTagSelected(tag) ? '#FFFFFF' : availableTags.find((t) => t.name === tag).textColor;
+  };  
+
+  const getTagBackgroundColor = (tag) => {
+    return isTagSelected(tag) ? availableTags.find((t) => t.name === tag).selectedColor : availableTags.find((t) => t.name === tag).color;
+  };
+
   const showStartTimePicker = () => {
     setStartTimePickerVisible(true);
   };
 
-  // Function to hide the start time picker
   const hideStartTimePicker = () => {
     setStartTimePickerVisible(false);
   };
 
-  // Function to handle the selection of start time
   const handleStartTimeConfirm = (time) => {
     setStartTime(time);
     hideStartTimePicker();
   };
 
-  // Function to show the end time picker
   const showEndTimePicker = () => {
     setEndTimePickerVisible(true);
   };
 
-  // Function to hide the end time picker
   const hideEndTimePicker = () => {
     setEndTimePickerVisible(false);
   };
 
-  // Function to handle the selection of end time
   const handleEndTimeConfirm = (time) => {
     setEndTime(time);
     hideEndTimePicker();
@@ -118,45 +134,65 @@ const EditTaskScreen = ({ route, navigation }) => {
         value={taskDescription}
         onChangeText={setTaskDescription}
         placeholder="Enter task description"
-        multiline
       />
 
-      <Text style={styles.label}>Start Time</Text>
-      <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
-        <Text>{startTime ? startTime.toLocaleString() : 'Select start time'}</Text>
-      </TouchableOpacity>
+    <Text style={styles.label}>Time:</Text>
+      {/* Display the selected task time */}
+      <View style={styles.timeContainer}>
+        <View style={styles.timeInputContainer}>
+          <Text style={[styles.label, styles.timeLabel]}>Start Time:</Text>
+          <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
+            <Text style={[styles.timeText, startTime && styles.selectedTimeText]}>
+              {startTime ? formatTime(startTime) : 'Select Start Time'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.timeInputContainer}>
+          <Text style={[styles.label, styles.timeLabel]}>End Time:</Text>
+          <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
+            <Text style={[styles.timeText, endTime && styles.selectedTimeText]}>
+              {endTime ? formatTime(endTime) : 'Select End Time'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <TimePicker
         isVisible={isStartTimePickerVisible}
         mode="datetime"
+        minuteInterval={5}
         onConfirm={handleStartTimeConfirm}
         onCancel={hideStartTimePicker}
       />
 
-      <Text style={styles.label}>End Time</Text>
-      <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
-        <Text>{endTime ? endTime.toLocaleString() : 'Select end time'}</Text>
-      </TouchableOpacity>
       <TimePicker
         isVisible={isEndTimePickerVisible}
         mode="datetime"
+        minuteInterval={5}
         onConfirm={handleEndTimeConfirm}
         onCancel={hideEndTimePicker}
       />
 
-      <Text style={styles.label}>Tags</Text>
-      <View style={styles.tagsContainer}>
-        {Tag.map((tag) => (
-          <TouchableOpacity
-            key={tag.id}
-            style={[
-              styles.tag,
-              selectedTags.includes(tag.id) ? { backgroundColor: tag.color } : null,
-            ]}
-            onPress={() => handleTagSelection(tag.id)}
-          >
-            <Text style={styles.tagText}>{tag.label}</Text>
-          </TouchableOpacity>
-        ))}
+      
+
+      <View style={styles.tagContainer}>
+        <Text style={styles.label}>Tags:</Text>
+        <View style={styles.tagButtonContainer}>
+          {availableTags.map((tag) => (
+            <TouchableOpacity
+              key={tag.name}
+              style={[
+                styles.tagButton,
+                isTagSelected(tag.name) ? styles.selectedTagButton : null,
+                { backgroundColor: getTagBackgroundColor(tag.name) },
+              ]}
+              onPress={() => toggleTag(tag.name)}
+            >
+              <Text style={[styles.tagButtonText, { color: getTagTextColor(tag.name) }]}>{tag.name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <TouchableOpacity style={styles.button} onPress={handleUpdateTask}>
@@ -173,7 +209,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'popSemiBold',
     marginBottom: 10,
   },
   input: {
@@ -183,33 +219,68 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 20,
     paddingHorizontal: 10,
+    fontFamily: 'popRegular',
   },
   button: {
     backgroundColor: '#478C5C',
-    paddingVertical: 12,
-    borderRadius: 5,
+    paddingVertical: 20,
+    borderRadius: 15,
+    marginTop: 'auto',
+    marginBottom: 100,
+    marginLeft: 40,
+    marginRight: 40,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontFamily: 'popBold',
     textAlign: 'center',
   },
-  tagsContainer: {
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  timeInputContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
+  timeLabel: {
+    marginRight: 8,
+    fontFamily: 'popRegular',
+  },
+  timeText: {
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  selectedTimeText: {
+    fontWeight: 'normal',
+    fontFamily: 'popRegular',
+  },
+  tagButton: {
+    backgroundColor: '#CCCCCC',
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    margin: 4,
+  },
+  selectedTagButton: {
+    backgroundColor: '#478C5C',
+  },
+  tagButtonText: {
+    color: '#FFFFFF',
+    fontFamily: 'popRegular',
+    fontSize: 13,
+  },
+  tagContainer: {
+    marginBottom: 16,
+  },
+  tagButtonContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 20,
-  },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: 'gray',
-    marginHorizontal: 5,
-    marginVertical: 3,
-  },
-  tagText: {
-    fontSize: 12,
+    borderRadius: 18,
+    paddingVertical: 8,
+    margin: 4,
+    justifyContent: 'center',
   },
 });
 

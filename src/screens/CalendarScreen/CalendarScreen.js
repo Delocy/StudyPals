@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Tag from './TagColors';
 import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Agenda, AgendaEntry, AgendaSchedule, DateData } from 'react-native-calendars';
-import { Card, Avatar } from 'react-native-paper';
+import { Agenda } from 'react-native-calendars';
+import { Card } from 'react-native-paper';
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
 import { Feather, MaterialIcons } from '@expo/vector-icons'; 
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, query, where ,collection, getDocs, deleteDoc, doc, onSnapshot } from "firebase/firestore";
+//import { getAnalytics } from "firebase/analytics";
+import { getFirestore, query, where ,collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -249,11 +249,13 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: 'popRegular',
   },
   subtitleText: {
     fontSize: 16,
     marginLeft: 8,
     color: 'gray',
+    fontFamily: 'popRegular',
   },
   taskInputContainer: {
     flexDirection: 'row',
@@ -311,10 +313,12 @@ const styles = StyleSheet.create({
   cardText: {
     marginBottom: 8,
     fontSize: 18,
+    fontFamily: 'popRegular',
   },
   cardTextDescription: {
     marginBottom: 8,
     color: '#9DA3B0',
+    fontFamily: 'popRegular',
   },
   tagContainer: {
     flexDirection: 'row',
@@ -328,10 +332,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 4,
     marginBottom: 4,
-  },
-  tagText: {
-    color: '#000000',
-    fontSize: 12,
   },
   deleteButton: {
     color: 'red',
@@ -347,6 +347,7 @@ const styles = StyleSheet.create({
   emptyDateText: {
     fontSize: 16,
     color: 'gray',
+    fontFamily: 'popRegular',
   },
   card: {
     backgroundColor: '#F9FAFD',
@@ -370,9 +371,6 @@ const styles = StyleSheet.create({
   },
   modalOption: {
     borderBottomWidth: 1,
-  },
-  modalOptionText: {
-    fontSize: 16,
   },
   modalButtonContainer: {
     flexDirection: 'row',
@@ -412,9 +410,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     textAlign: 'center',
+    fontFamily: 'popRegular',
   },
   selectedTaskTitle: {
-    fontSize: 20,
+    fontSize: 15,
+    fontFamily: 'popRegular',
   }
 });
 
