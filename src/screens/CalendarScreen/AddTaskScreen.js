@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import Tag from './TagColors';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import TimePicker from 'react-native-modal-datetime-picker';
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getFirestore,collection, addDoc } from "firebase/firestore";
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -155,19 +153,19 @@ const AddTaskScreen = ({ route, navigation }) => {
       {/* Display the selected task time */}
       <View style={styles.timeContainer}>
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>Start Time:</Text>
+          <Text style={[styles.label, styles.timeLabel]}>Start:</Text>
           <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
             <Text style={[styles.timeText, taskStartTime && styles.selectedTimeText]}>
-              {taskStartTime ? formatTime(taskStartTime) : 'Select Start Time'}
+              {taskStartTime ? formatTime(taskStartTime) : 'Select'}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>End Time:</Text>
+          <Text style={[styles.label, styles.timeLabel]}>End:</Text>
           <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
             <Text style={[styles.timeText, taskEndTime && styles.selectedTimeText]}>
-              {taskEndTime ? formatTime(taskEndTime) : 'Select End Time'}
+              {taskEndTime ? formatTime(taskEndTime) : 'Select'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -226,7 +224,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    fontFamily: 'popSemiBold',
   },
   input: {
     height: 40,
@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginBottom: 16,
+    fontFamily: 'popRegular',
   },
   tagContainer: {
     marginBottom: 16,
@@ -270,10 +271,12 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     marginRight: 8,
+    fontFamily: 'popRegular',
   },
   timeText: {
     textAlign: 'center',
     marginTop: 10,
+    fontFamily: 'popRegular',
   },
   selectedTimeText: {
     fontWeight: 'normal',
@@ -290,6 +293,8 @@ const styles = StyleSheet.create({
   },
   tagButtonText: {
     color: '#FFFFFF',
+    fontFamily: 'popRegular',
+    fontSize: 13,
   },  
 });
 

@@ -31,11 +31,11 @@ const Tag = ({ text }) => {
     <View style={{ 
       backgroundColor: color, 
       borderRadius: 18,
-      paddingVertical: 7,
-      paddingHorizontal: 15,  
-      marginRight: 8 ,
+      paddingVertical: 8,
+      paddingHorizontal: 15,
+      marginRight: 6,
       justifyContent:'center',}}>
-      <Text style={{ color: textColor, marginVertical: 2, marginHorizontal: 7 }}>{text}</Text>
+      <Text style={{ color: textColor, marginHorizontal: 7, fontFamily: 'popRegular', fontSize: 12,}}>{text}</Text>
     </View>
   );
 };
