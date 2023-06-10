@@ -8,6 +8,9 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import AuthLoadingScreen from '../screens/AuthLoadingScreen';
 import AddTaskScreen from '../screens/CalendarScreen/AddTaskScreen';
+import EmojiPickerScreen from '../screens/ShareYourWorriesScreen/EmojiPickerScreen';
+import MoodDetailsScreen from '../screens/ShareYourWorriesScreen/MoodDetailsScreen';
+import DiaryEntriesScreen from '../screens/ShareYourWorriesScreen/DiaryEntriesScreen';
 import EditTaskScreen from '../screens/CalendarScreen/EditTaskScreen';
 
 function AuthNavigator() {
@@ -22,6 +25,9 @@ function AuthNavigator() {
         <Stack.Screen name='Home' options={{ headerShown: false }} component={TabNavigator} />
         <Stack.Screen name='ResetPassword' options={{ headerShown: false }} component={ResetPasswordScreen} />
         <Stack.Screen name="AddTask" component={AddTaskScreen} />
+        <Stack.Screen name="EmojiPicker" component={EmojiPickerScreen} />
+        <Stack.Screen name="MoodDetails" component={MoodDetailsScreen} />
+        <Stack.Screen name="DiaryEntries" component={DiaryEntriesScreen} />
         <Stack.Screen name="EditTask" component={EditTaskScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
