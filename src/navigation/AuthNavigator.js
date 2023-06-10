@@ -6,7 +6,6 @@ import LoginScreen from '../screens/LoginScreen';
 import TabNavigator from './TabNavigator';
 import RegisterScreen from '../screens/RegisterScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
-import AuthLoadingScreen from '../screens/AuthLoadingScreen';
 import AddTaskScreen from '../screens/CalendarScreen/AddTaskScreen';
 import EmojiPickerScreen from '../screens/ShareYourWorriesScreen/EmojiPickerScreen';
 import MoodDetailsScreen from '../screens/ShareYourWorriesScreen/MoodDetailsScreen';
@@ -18,7 +17,6 @@ function AuthNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName='SplashScreen'>
-        <Stack.Screen name="AuthLoadingScreen" component={AuthLoadingScreen}/>
         <Stack.Screen name='SplashScreen' options={{ headerShown: false }} component={SplashScreen}/>
         <Stack.Screen name='Login' options={{ headerShown: false }} component={LoginScreen} />
         <Stack.Screen name='Register' options={{ headerShown: false }} component={RegisterScreen} />

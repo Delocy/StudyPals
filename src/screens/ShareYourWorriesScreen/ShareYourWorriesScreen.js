@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
 import TextInput from '../../components/TextInput';
 import { MaterialIcons } from '@expo/vector-icons'; 
@@ -34,7 +34,29 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [diaryEntries, setDiaryEntries] = useState([]); // State variable for diary entries
   const [showBenefits, setShowBenefits] = useState(false);
+  const [loading, setLoading] = useState(true);
   const userId = auth.currentUser.uid;
+  const userName = auth.currentUser.displayName;
+
+  useEffect(() => {
+    const fetchDiaryEntries = async () => {
+      try {
+        const diaryEntriesRef = firestore.collection('diaryEntries');
+        const querySnapshot = await diaryEntriesRef.where('userId', '==', userId).get();
+        const entries = [];
+        querySnapshot.forEach((doc) => {
+          entries.push(doc.data());
+        });
+        setDiaryEntries(entries);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching diary entries from Firestore:', error);
+        setLoading(false);
+      }
+    };
+  
+    fetchDiaryEntries();
+  }, []);  
 
   const handleEmojiSelection = (emoji) => {
     setSelectedEmoji(emoji);
@@ -132,52 +154,54 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   
 
   const renderEmptyDiary = () => {
-  
     const flipCard = () => {
       setShowBenefits(!showBenefits);
     };
-
-    const today = new Date();
-    const formattedToday = `${today.getDate()} ${getMonthName(today.getMonth() + 1)} ${today.getFullYear()}`;
-
-    const hasEntryForToday = diaryEntries.some(entry => entry.timestamp === formattedToday);
-
-    if (hasEntryForToday) {
-      return null; // If there is an entry for today, return null to render nothing
-    }
   
-    return (
-      <TouchableOpacity style={styles.emptyDiaryContainer} onPress={flipCard}>
-        <View style={styles.emptyDiaryCard}>
-          {showBenefits ? (
-            <View>
-              <Text style={styles.emptyDiaryHeaderText}>Benefits of Reflecting:</Text>
-              <Text style={styles.emptyDiaryText}>
-                Reflecting on your day can help you gain insights, reduce stress, improve self-awareness,
-                and promote personal growth. Take a moment to jot down your thoughts and experiences.
-              </Text>
-            </View>
-          ) : (
-            <View>
-              <Image
-                source={require('../../assets/diary.png')}
-                style={styles.emptyDiaryImage}
-              />
-              <Text style={styles.emptyDiaryText}>
-                Start reflecting your day for mindfulness and growth! 
-              </Text>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  };
+    const hasRecentEntries = diaryEntries.some((entry) => {
+      const entryDate = new Date(entry.timestamp);
+      const currentDate = new Date();
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(currentDate.getDate());
+      return entryDate >= threeDaysAgo;
+    });
+  
+    if (!hasRecentEntries || diaryEntries.length === 0) {
+      return (
+        <TouchableOpacity style={styles.emptyDiaryContainer} onPress={flipCard}>
+          <View style={styles.emptyDiaryCard}>
+            {showBenefits ? (
+              <View>
+                <Text style={styles.emptyDiaryHeaderText}>Benefits of Reflecting:</Text>
+                <Text style={styles.emptyDiaryText}>
+                  Reflecting on your day can help you gain insights, reduce stress, improve self-awareness,
+                  and promote personal growth. Take a moment to jot down your thoughts and experiences.
+                </Text>
+              </View>
+            ) : (
+              <View>
+                <Image
+                  source={require('../../assets/diary.png')}
+                  style={styles.emptyDiaryImage}
+                />
+                <Text style={styles.emptyDiaryText}>
+                  Start reflecting your day for mindfulness and growth!
+                </Text>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      );
+    } else {
+      return null;
+    }
+  };  
   
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.topContainer}>
-            <Text style={styles.headText}>Hi, how was your day like this today?</Text>
+            <Text style={styles.headText}>Hi {userName}, how was your day like today?</Text>
             <View style={styles.circle}>
               {renderEmojiImage()}
             </View>
@@ -310,6 +334,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 150,
+    marginTop: 10,
   },
   buttonEmoji: {
     left: 23,
