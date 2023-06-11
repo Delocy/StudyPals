@@ -120,7 +120,7 @@ const EditTaskScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Task Name</Text>
+      <Text style={styles.label}>Task Name *</Text>
       <TextInput
         style={styles.input}
         value={taskName}
@@ -135,12 +135,10 @@ const EditTaskScreen = ({ route, navigation }) => {
         onChangeText={setTaskDescription}
         placeholder="Enter task description"
       />
-
-    <Text style={styles.label}>Time:</Text>
       {/* Display the selected task time */}
       <View style={styles.timeContainer}>
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>Start Time:</Text>
+          <Text style={styles.label}>Start Time *</Text>
           <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
             <Text style={[styles.timeText, startTime && styles.selectedTimeText]}>
               {startTime ? formatTime(startTime) : 'Select Start Time'}
@@ -149,7 +147,7 @@ const EditTaskScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>End Time:</Text>
+          <Text style={styles.label}>End Time *</Text>
           <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
             <Text style={[styles.timeText, endTime && styles.selectedTimeText]}>
               {endTime ? formatTime(endTime) : 'Select End Time'}
@@ -243,10 +241,6 @@ const styles = StyleSheet.create({
   timeInputContainer: {
     flex: 1,
     marginRight: 8,
-  },
-  timeLabel: {
-    marginRight: 8,
-    fontFamily: 'popRegular',
   },
   timeText: {
     textAlign: 'center',
