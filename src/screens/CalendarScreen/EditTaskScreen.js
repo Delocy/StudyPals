@@ -158,7 +158,7 @@ const EditTaskScreen = ({ route, navigation }) => {
 
       <TimePicker
         isVisible={isStartTimePickerVisible}
-        mode="datetime"
+        mode="time"
         minuteInterval={5}
         onConfirm={handleStartTimeConfirm}
         onCancel={hideStartTimePicker}
@@ -166,7 +166,7 @@ const EditTaskScreen = ({ route, navigation }) => {
 
       <TimePicker
         isVisible={isEndTimePickerVisible}
-        mode="datetime"
+        mode="time"
         minuteInterval={5}
         onConfirm={handleEndTimeConfirm}
         onCancel={hideEndTimePicker}

@@ -55,7 +55,6 @@ const CalendarScreen = ({ navigation }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [reload, setReload] = useState(false);
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
@@ -123,7 +122,7 @@ const CalendarScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
-  };      
+  };    
 
   const navigateToAddTaskScreen = () => {
     navigation.navigate('AddTask', { date: selectedDate });
@@ -154,53 +153,51 @@ const CalendarScreen = ({ navigation }) => {
         await updateDoc(taskRef, {
           completed: !currentCompleted,
         });
-  
-        // Update the completion status in the state directly for the selected task
         setSelectedTask((prevTask) => ({
           ...prevTask,
-          completed: !currentCompleted,
+          completed: !prevTask.completed,
         }));
       }
       closeModal();
+      loadTasks();
     } catch (error) {
       console.error('Error toggling completed status:', error);
     }
-};
+  };
   
-const renderItem = (item) => {
-  console.log(item.name)
-  const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
-  const endTime = new Date(item.endTime.seconds * 1000);
+  
+  
+  const renderItem = (item) => {
+    const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
+    const endTime = new Date(item.endTime.seconds * 1000);
 
-  const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-  const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-  const textDecoration = item.completed ? 'line-through' : 'none';
+    const textDecoration = item.completed ? 'line-through' : 'none';
 
-  return (
-    <TouchableOpacity
-      key={item.id} // Assign a unique key to each rendered item using the task's ID
-      style={{ marginLeft: 20, marginRight: 20, marginTop: 20 }}
-      onPress={() => openModal(item, item.id)}
-    >
-      <Card style={styles.card}>
-        <Card.Content style={styles.cardContent}>
-          <View style={styles.cardTextContainer}>
-            <Text style={[styles.cardText, { textDecorationLine: textDecoration }]}>{item.name}</Text>
-            <Text style={styles.cardTextDescription}>{item.description.toString()}</Text>
-            <Text style={styles.cardTextDescription}>{startTimeString} - {endTimeString}</Text>
-            <View style={{ flexDirection: 'row', marginTop: 8 }}>
-              {item.tags.map((tag, index) => (
-                <Tag key={index} text={tag} />
-              ))}
+    return (
+      <TouchableOpacity
+        style={{ marginLeft: 20, marginRight: 20, marginTop: 20 }}
+        onPress={() => openModal(item, item.id)}
+      >
+        <Card style={styles.card}>
+          <Card.Content style={styles.cardContent}>
+            <View style={styles.cardTextContainer}>
+              <Text style={[styles.cardText, { textDecorationLine: textDecoration }]}>{item.name}</Text>
+              <Text style={styles.cardTextDescription}>{item.description.toString()}</Text>
+              <Text style={styles.cardTextDescription}>{startTimeString} - {endTimeString}</Text>
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                {item.tags.map((tag, index) => (
+                  <Tag key={index} text={tag} />
+                ))}
+              </View>
             </View>
-          </View>
-        </Card.Content>
-      </Card>
-    </TouchableOpacity>
-  );
-};
-  
+          </Card.Content>
+        </Card>
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmptyDate = () => {
     return (
@@ -230,9 +227,11 @@ const renderItem = (item) => {
         onDayPress={(date) => {
           const selectedDateString = date.dateString;
           setSelectedDate(selectedDateString);
+          setItems({}); // Clear the items state
+          setMarkedDates({}); // Clear the markedDates state
           const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
           setSubtitle(selectedMonth);
-        }}        
+        }}         
         showOnlySelectedDayItems
       />
       <View style={styles.bottomContainer}>
