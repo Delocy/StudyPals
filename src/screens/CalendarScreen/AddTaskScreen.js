@@ -73,6 +73,7 @@ const AddTaskScreen = ({ route, navigation }) => {
           tags: selectedTags,
           // Add more properties as needed
           userId: user.uid, // Include the user's ID
+          completed: false,
         };
   
         await addDoc(collection(db, 'tasks'), task);
@@ -149,11 +150,10 @@ const AddTaskScreen = ({ route, navigation }) => {
         onChangeText={setTaskDescription}
         placeholder="Enter task description"
       />
-      <Text style={styles.label}>Time:</Text>
       {/* Display the selected task time */}
       <View style={styles.timeContainer}>
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>Start:</Text>
+          <Text style={[styles.label]}>Start:</Text>
           <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
             <Text style={[styles.timeText, taskStartTime && styles.selectedTimeText]}>
               {taskStartTime ? formatTime(taskStartTime) : 'Select'}
@@ -162,7 +162,7 @@ const AddTaskScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>End:</Text>
+          <Text style={[styles.label]}>End:</Text>
           <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
             <Text style={[styles.timeText, taskEndTime && styles.selectedTimeText]}>
               {taskEndTime ? formatTime(taskEndTime) : 'Select'}
