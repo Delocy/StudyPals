@@ -2,9 +2,9 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Screens
-import ShareYourWorriesScreen from "../screens/ShareYourWorriesScreen";
+import ShareYourWorriesScreen from "../screens/ShareYourWorriesScreen/ShareYourWorriesScreen";
 import CalendarScreen from "../screens/CalendarScreen/CalendarScreen";
-import HomeScreen from '../screens/HomeScreen';
+import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import PomodoroScreen from "../screens/PomodoroScreen/PomodoroScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 

@@ -2,6 +2,7 @@
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import {getFirestore} from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -25,10 +26,7 @@ if (firebase.apps.length === 0) {
     app = firebase.app()
 }
 
-const auth = firebase.auth()
+const auth = firebase.auth();
+const firestore = firebase.firestore();
 
-<<<<<<< Updated upstream
-export { auth };
-=======
 export { auth, firestore, firebase};
->>>>>>> Stashed changes

@@ -1,25 +1,28 @@
-import React, { useState } from 'react';
-import { Text, TextInput, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Agenda, AgendaList } from 'react-native-calendars';
-import { Card, Avatar } from 'react-native-paper';
-import { useEffect } from 'react';
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import React, { useState, useEffect } from 'react';
+import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Card } from 'react-native-paper';
+import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Agenda } from 'react-native-calendars';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import {
+  getFirestore,
+  query,
+  where,
+  collection,
+  deleteDoc,
+  updateDoc,
+  getDoc,
+  doc,
+  onSnapshot,
+} from 'firebase/firestore';
+import Tag from './TagColors';
 
-// const timeToString = (time) => {
-//   const date = new Date(time);
-//   return date.toISOString().split('T')[0];
-// };
 
 const timeToString = (time) => {
   const date = new Date(time);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return date.toISOString().split('T')[0];
 };
-
 
 const theme = {
   backgroundColor: '#ffffff',
@@ -32,6 +35,7 @@ const theme = {
   textDisabledColor: '#999999',
   arrowColor: '#478C5C',
 };
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
@@ -46,131 +50,160 @@ const firebaseConfig = {
 const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
   const [subtitle, setSubtitle] = useState('');
+  const [selectedDate, setSelectedDate] = useState(timeToString(Date.now()));
+  const [markedDates, setMarkedDates] = useState({});
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const navigateToAddTaskScreen = () => {
-    navigation.navigate('AddTask');
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const openModal = (task, taskId) => {
+    setIsModalVisible(true);
+    setSelectedTask(task);
+    setSelectedTaskId(taskId);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
   };
 
   useEffect(() => {
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-  
-    const fetchTasks = async () => {
-      try {
-        const tasksSnapshot = await getDocs(collection(db, 'tasks'));
-        const tasksData = tasksSnapshot.docs.map((doc) => doc.data());
-        //console.log('Tasks data:', tasksData);
-        
-        const newItems = {};
-    
-        tasksData.forEach((task) => {
-          const selectedDay = timeToString(task.time);
-    
-          if (newItems[selectedDay]) {
-            newItems[selectedDay].push({
-              name: task.name,
-              description: task.description,
-              time: task.time,
-            });
-          } else {
-            newItems[selectedDay] = [
-              { 
-                name: task.name,
-                description: task.description,
-                time: task.time,
-              },
-            ];
-          }
-        });
-    
-        //console.log('New items:', newItems);
-        setItems(newItems);
-      } catch (error) {
-        console.error('Error fetching tasks: ', error);
-      }
-    };
-    fetchTasks();    
+    loadTasks();
   }, []);
+
+  const loadTasks = async () => {
+    try {
+      const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const formattedItems = {};
+        const formattedMarkedDates = {};
   
-  const loadItems = (day) => {
-    setTimeout(() => {
-      const selectedDay = timeToString(day.timestamp);
-      // console.log('Selected day:', selectedDay);
-      console.log("#####")
-      console.log(items);
-      console.log(timeToString(Date.now()))
-
-      const selectedItems = items[selectedDay] || [];
-      // console.log('Selected items:', selectedItems);
-
-      const sortedItems = selectedItems.sort((a, b) => {
-        return new Date(a.time) - new Date(b.time);
+        snapshot.forEach((doc) => {
+          const task = doc.data();
+          const strTime = timeToString(task.time);
+  
+          if (!formattedItems[strTime]) {
+            formattedItems[strTime] = [];
+            formattedMarkedDates[strTime] = {
+              marked: true,
+              dotColor: '#478C5C',
+            };
+          }
+  
+          formattedItems[strTime].push({
+            id: doc.id,
+            name: task.name,
+            description: task.description,
+            startTime: task.startTime,
+            endTime: task.endTime,
+            time: task.time,
+            tags: task.tags || [],
+            completed: task.completed,
+          });
+        });
+  
+        // Sort the tasks by start time in ascending order
+        const sortedItems = {};
+        Object.keys(formattedItems).forEach((date) => {
+          sortedItems[date] = formattedItems[date].sort(
+            (a, b) => a.startTime.seconds - b.startTime.seconds
+          );
+        });
+  
+        setItems(sortedItems); // Update the state with the sorted items
+        setMarkedDates(formattedMarkedDates); // Update the state with the formatted marked dates
       });
-
-      const newItems = {
-        [selectedDay]: sortedItems,
-      };
-      //console.log('New items:', newItems);
-
-      setItems(newItems);
   
-      const selectedDate = new Date(selectedDay);
-      const month = selectedDate.toLocaleString('default', { month: 'long' });
-      const year = selectedDate.getFullYear();
-      const formattedSubtitle = `${month} ${year}`;
-      setSubtitle(formattedSubtitle); // Add this line to update the subtitle state
-    }, 1000);
-  };
-
-  const list = [{
-    "description": "-",
-    "name": "2",
-    "time": "2023-05-26T02:01:29.111Z",
-  }] 
-
-  const deleteTask = (item) => {
-    const selectedDay = timeToString(Date.now());
-    const newItems = { ...items };
-    const tasks = newItems[selectedDay];
-    const updatedTasks = tasks.filter((task) => task.time !== item.time);
-    newItems[selectedDay] = updatedTasks;
-    setItems(newItems);
-  };
-
-  const renderItem = ({ item }) => {
-    if (!item) { //|| !item.name || !item.description || !item.time
-      //console.log('Invalid item:', item);
-      return null; // Return early if item or required properties are missing
+      return unsubscribe; // Return the unsubscribe function to clean up the subscription
+    } catch (error) {
+      console.error('Error loading tasks:', error);
     }
+  };    
+
+  const navigateToAddTaskScreen = () => {
+    navigation.navigate('AddTask', { date: selectedDate });
+  };
+
+  const navigateToEditTaskScreen = () => {
+    navigation.navigate('EditTask', { task: selectedTask });
+    closeModal();
+  };
+
+  const handleDelete = async () => {
+    try {
+      const taskRef = doc(db, 'tasks', selectedTaskId); // Use the correct document ID
+      await deleteDoc(taskRef);
+      closeModal();
+      loadTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
+  const handleComplete = async () => {
+    try {
+      const taskRef = doc(db, 'tasks', selectedTaskId);
+      const taskDoc = await getDoc(taskRef);
+      if (taskDoc.exists()) {
+        const currentCompleted = taskDoc.data().completed || false;
+        await updateDoc(taskRef, {
+          completed: !currentCompleted,
+        });
+        setSelectedTask((prevTask) => ({
+          ...prevTask,
+          completed: !prevTask.completed,
+        }));
+      }
+      closeModal();
+      loadTasks();
+    } catch (error) {
+      console.error('Error toggling completed status:', error);
+    }
+  };
   
-    //console.log('Rendering item:', item);
   
+  
+  const renderItem = (item) => {
+    const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
+    const endTime = new Date(item.endTime.seconds * 1000);
+
+    const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+    const textDecoration = item.completed ? 'line-through' : 'none';
+
     return (
-      <Agenda.Item
-        key={item.time}
-        onPress={() => console.log('Item pressed:', item)}
-        style={{ marginRight: 10, marginTop: 17 }}
+      <TouchableOpacity
+        style={{ marginLeft: 20, marginRight: 20, marginTop: 20 }}
+        onPress={() => openModal(item, item.id)}
       >
-        <Card>
-          <Card.Content>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Text>{item.name}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Avatar.Text label="J" />
-                <TouchableOpacity onPress={() => deleteTask(item)}>
-                  <Text style={{ color: 'red', marginLeft: 8 }}>Delete</Text>
-                </TouchableOpacity>
+        <Card style={styles.card}>
+          <Card.Content style={styles.cardContent}>
+            <View style={styles.cardTextContainer}>
+              <Text style={[styles.cardText, { textDecorationLine: textDecoration }]}>{item.name}</Text>
+              <Text style={styles.cardTextDescription}>{item.description.toString()}</Text>
+              <Text style={styles.cardTextDescription}>{startTimeString} - {endTimeString}</Text>
+              <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                {item.tags.map((tag, index) => (
+                  <Tag key={index} text={tag} />
+                ))}
               </View>
             </View>
           </Card.Content>
         </Card>
-      </Agenda.Item>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderEmptyDate = () => {
+    return (
+      <View style={styles.emptyDate}>
+        <Text style={styles.emptyDateText}>No tasks for this date</Text>
+      </View>
     );
   };
 
@@ -182,31 +215,63 @@ const CalendarScreen = ({ navigation }) => {
       </View>
       <Agenda
         items={items}
-        loadItemsForMonth={loadItems}
-        //selected={timeToString(Date.now()).toString()}
-        selected="2023-05-26"
+        markedDates={markedDates}
         theme={theme}
-        renderItem={(item, isFirst) => (
-          <TouchableOpacity style={styles.item}>
-            <Text style={styles.itemText}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      />
-      {/* <Agenda
-        //selected="2023-05-26"
-        items={{
-          '2022-12-01': [{name: 'Cycling'}, {name: 'Walking'}, {name: 'Running'}],
-          '2022-12-02': [{name: 'Writing'}]
+        loadItemsForMonth={loadTasks}
+        selected={timeToString(Date.now())}
+        renderItem={renderItem}
+        renderEmptyData={renderEmptyDate}
+        renderDay={(day, item) => {
+          return <View/>;
         }}
-        renderItem={(item, isFirst) => (
-          <TouchableOpacity style={styles.item}>
-            <Text style={styles.itemText}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
-      /> */}
-      <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
-        <Text style={styles.addButtonLabel}>Add Task</Text>
-      </TouchableOpacity>
+        onDayPress={(date) => {
+          const selectedDateString = date.dateString;
+          setSelectedDate(selectedDateString);
+          setItems({}); // Clear the items state
+          setMarkedDates({}); // Clear the markedDates state
+          const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
+          setSubtitle(selectedMonth);
+        }}         
+        showOnlySelectedDayItems
+      />
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={navigateToAddTaskScreen}>
+          <Text style={styles.addButtonLabel}>Add Task</Text>
+        </TouchableOpacity>
+      </View>
+      <Modal visible={isModalVisible} animationType="fade" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalTitleWithCancel}>
+              <Text style={styles.selectedTaskTitle}>{selectedTask ? selectedTask.name : ''}</Text>
+              <TouchableOpacity onPress={closeModal}>
+              <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity style={[styles.modalOption, styles.editButton]} onPress={navigateToEditTaskScreen}>
+                <View style={styles.buttonContent}>
+                  <Feather name="edit" size={24} color="white" />
+                  <Text style={styles.buttonText}>Edit</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalOption, styles.deleteButton]} onPress={handleDelete}>
+                <View style={styles.buttonContent}>
+                  <MaterialIcons name="delete-outline" size={24} color="white" />
+                  <Text style={styles.buttonText}>Delete</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalOption, styles.completeButton]} onPress={handleComplete}>
+                <View style={styles.buttonContent}>
+                  <Ionicons name="checkbox-outline" size={24} color="white" />
+                  <Text style={styles.buttonText}>Complete</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -223,14 +288,19 @@ const styles = StyleSheet.create({
     margin: 10,
     backgroundColor: '#ffffff',
   },
+  bottomContainer: {
+    backgroundColor: "#F2F4F4",
+  },
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily: 'popRegular',
   },
   subtitleText: {
     fontSize: 16,
     marginLeft: 8,
     color: 'gray',
+    fontFamily: 'popRegular',
   },
   taskInputContainer: {
     flexDirection: 'row',
@@ -248,15 +318,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginRight: 8,
   },
+  emptyDate: {
+    height: 15,
+    flex: 1,
+    paddingTop: 30
+  },
   addButton: {
     backgroundColor: '#478C5C',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
+    margin: 20, // Adjust the margin top value as needed
+    alignSelf: 'center', // Align the button to the center horizontally
   },
   addButtonLabel: {
     color: '#ffffff',
-    fontWeight: 'bold',
+    fontSize: 16,
+    marginHorizontal: 15,
+    marginVertical: 3,
   },
   dayContainer: {
     width: 36,
@@ -266,6 +345,132 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#478C5C',
   },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardTextContainer: {
+    flexDirection: 'column',
+    flex: 1,
+    marginRight: 8,
+  },
+  cardText: {
+    marginBottom: 8,
+    fontSize: 18,
+    fontFamily: 'popRegular',
+  },
+  cardTextDescription: {
+    marginBottom: 8,
+    color: '#9DA3B0',
+    fontFamily: 'popRegular',
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  tagBox: {
+    backgroundColor: '#E0E0E0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginRight: 4,
+    marginBottom: 4,
+  },
+  deleteButton: {
+    color: 'red',
+    fontSize: 16,
+  },
+  emptyDate: {
+    height: 15,
+    flex: 1,
+    paddingTop: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyDateText: {
+    fontSize: 16,
+    color: 'gray',
+    fontFamily: 'popRegular',
+  },
+  card: {
+    backgroundColor: '#F9FAFD',
+    borderRadius: 15,
+    elevation: 2,
+    marginBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 27,
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 40, 
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    width: '90%',
+  },
+  modalOption: {
+    borderBottomWidth: 1,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 30,
+    marginBottom: 10,
+  },
+  modalTitleWithCancel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 15,
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+  },
+  editButton: {
+    flex: 1,
+    marginRight: 10,
+    backgroundColor: 'blue',
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: 'red',
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completeButton: {
+    flex: 1,
+    marginLeft: 10,
+    backgroundColor: '#478C5C', // Set the background color to blue
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonContent: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'popRegular',
+  },
+  selectedTaskTitle: {
+    fontSize: 15,
+    fontFamily: 'popRegular',
+  }
 });
 
 
