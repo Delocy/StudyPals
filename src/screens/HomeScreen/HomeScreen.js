@@ -51,8 +51,12 @@ const HomeScreen = ({ navigation }) => {
   const quote = getQuote(completionPercentage);
   const tasksLeft = taskCount - completedCount;
 
-  const handleContainerPress = () => {
+  const handleContainerPressToMeditation = () => {
     navigation.navigate('MeditationScreen');
+  };
+
+  const handleContainerPressToResources = () => {
+    navigation.navigate('ResourcesScreen');
   };
 
   return (
@@ -95,13 +99,13 @@ const HomeScreen = ({ navigation }) => {
             </View>
         </View>
         <ScrollView horizontal>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
             <Text style={styles.contentTitle}>Meditation</Text>
             <Text style={styles.content}>Take a deep breath</Text>
             <Image source={require('./Images/Meditate.png')} style={styles.restImage} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
-            <Text>Another Button</Text>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToResources}>
+            <Text>5 min read</Text>
             </TouchableOpacity>
         </ScrollView>
       </View>
@@ -113,12 +117,12 @@ const HomeScreen = ({ navigation }) => {
             </View>
         </View>
         <ScrollView horizontal>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
             <Text style={styles.contentTitle}>Diary</Text>
             <Text style={styles.content}>Track your mood</Text>
             <Image source={require('./Images/Diary.png')} style={styles.restImage} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
             <Text style={styles.contentTitle}>Timer</Text>
             <Text style={styles.content}>See how focused you are</Text>
             <Image source={require('./Images/Timer.png')} style={styles.restImage} />
