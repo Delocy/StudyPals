@@ -29,8 +29,8 @@ function AuthNavigator() {
         <Stack.Screen name="MoodDetails" component={MoodDetailsScreen} />
         <Stack.Screen name="DiaryEntries" component={DiaryEntriesScreen} />
         <Stack.Screen name="EditTask" component={EditTaskScreen} /> 
-        <Stack.Screen name="MeditationScreen" component={MeditationScreen} /> 
-        <Stack.Screen name="ResourcesScreen" component={ResourcesScreen} /> 
+        <Stack.Screen name="Meditation" component={MeditationScreen} /> 
+        <Stack.Screen name="Resources" component={ResourcesScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );

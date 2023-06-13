@@ -52,11 +52,11 @@ const HomeScreen = ({ navigation }) => {
   const tasksLeft = taskCount - completedCount;
 
   const handleContainerPressToMeditation = () => {
-    navigation.navigate('MeditationScreen');
+    navigation.navigate('Meditation');
   };
 
   const handleContainerPressToResources = () => {
-    navigation.navigate('ResourcesScreen');
+    navigation.navigate('Resources');
   };
 
   return (
@@ -105,7 +105,9 @@ const HomeScreen = ({ navigation }) => {
             <Image source={require('./Images/Meditate.png')} style={styles.restImage} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToResources}>
-            <Text>5 min read</Text>
+            <Text style={styles.contentTitle}>Resources</Text>
+            <Text style={styles.content}>5 mins read</Text>
+            <Image source={require('./Images/reading.png')} style={styles.restImage} />
             </TouchableOpacity>
         </ScrollView>
       </View>
