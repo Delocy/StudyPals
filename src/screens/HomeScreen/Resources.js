@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     backgroundColor: '#dddddd',
-    borderRadius: 30,
+    borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 8,
     justifyContent: 'center',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   filterButtonSelected: {
     backgroundColor: 'blue',
-    borderRadius: 30,
+    borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 8,
     justifyContent: 'center',
