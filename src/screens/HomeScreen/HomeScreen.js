@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet, SafeAreaView, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { firestore, auth } from '../../../firebase.js';
 import CircularProgress from 'react-native-circular-progress-indicator';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const HomeScreen = ({ navigation }) => {
   const [taskCount, setTaskCount] = useState(0);
@@ -37,7 +38,7 @@ const HomeScreen = ({ navigation }) => {
 
   const getQuote = (percentage) => {
     if (percentage === 100) {
-      return "Congratulations! You've completed all tasks!";
+      return "Congratulations! You've completed all your tasks!";
     } else if (percentage >= 80) {
       return "Great job! You're almost there! Keep up the good work and stay motivated!";
     } else if (percentage >= 50) {
@@ -51,7 +52,6 @@ const HomeScreen = ({ navigation }) => {
   const tasksLeft = taskCount - completedCount;
 
   const handleContainerPress = () => {
-    // Perform navigation logic here
     navigation.navigate('MeditationScreen');
   };
 
@@ -70,7 +70,7 @@ const HomeScreen = ({ navigation }) => {
             inActiveStrokeOpacity={0.5}
             activeStrokeWidth={20}
             inActiveStrokeWidth={20}
-            progressValueStyle={{ color: '#478C5C' }}
+            progressValueStyle={{ color: 'white' }}
           >
           </CircularProgress>
           <View style={styles.quoteContainer}>
@@ -81,23 +81,50 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.tasksLeft}>{tasksLeft} task(s) left for today</Text>
           </View>
         </View>
-      ) : ( // Render rest day component if showChart is false
+      ) : (
         <View style={styles.restDayContainer}>
-          <Text style={styles.restDayText}>It's important to take a rest!</Text>
+          <Text numberOfLines={3} style={styles.restDayText}>It's your rest day!You have no task planned for the day</Text>
           <Image source={require('./Images/dog.png')} style={styles.restImage} />
         </View>
       )}
-      <Text>Start your day</Text>
-      <ScrollView horizontal>
-        <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
-          {/* Add the content of the container here */}
-          <Text>Meditation</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
-          {/* Add the content of the container here */}
-          <Text>Another Button</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      <View>
+        <View style={styles.categoryTitleWithArrow}>
+            <Text style={styles.categoryTitle}>Start your day</Text>
+            <View style={styles.arrowContainer}>
+                <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} />
+            </View>
+        </View>
+        <ScrollView horizontal>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <Text style={styles.contentTitle}>Meditation</Text>
+            <Text style={styles.content}>Take a deep breath</Text>
+            <Image source={require('./Images/Meditate.png')} style={styles.restImage} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <Text>Another Button</Text>
+            </TouchableOpacity>
+        </ScrollView>
+      </View>
+      <View>
+      <View style={styles.categoryTitleWithArrow}>
+            <Text style={styles.categoryTitle}>Analytics</Text>
+            <View style={styles.arrowContainer}>
+                <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} />
+            </View>
+        </View>
+        <ScrollView horizontal>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <Text style={styles.contentTitle}>Diary</Text>
+            <Text style={styles.content}>Track your mood</Text>
+            <Image source={require('./Images/Diary.png')} style={styles.restImage} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <Text style={styles.contentTitle}>Timer</Text>
+            <Text style={styles.content}>See how focused you are</Text>
+            <Image source={require('./Images/Timer.png')} style={styles.restImage} />
+            </TouchableOpacity>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -112,7 +139,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    padding: 10,
   },
   logo: {
     width: 40,
@@ -128,11 +155,10 @@ const styles = StyleSheet.create({
   rectangularContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F6FFDE',
+    backgroundColor: '#478C5C',
     flexDirection: 'row',
     padding: 20,
     borderRadius: 20,
-    marginTop: 5,
     width: '95%',
     alignSelf: 'center',
   },
@@ -145,27 +171,29 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
     fontFamily: 'popSemiBold',
+    color: 'white'
   },
   quoteText: {
     fontSize: 15,
     textAlign: 'center',
     fontFamily: 'popRegular',
+    color: 'white',
   },
   tasksLeft: {
     marginTop: 10,
     fontSize: 14,
     textAlign: 'center',
-    color: '#666666',
+    color: '#DCE0EA',
   },
   containerButton: {
     width: 198,
     height: 200,
-    backgroundColor: 'lightblue',
+    backgroundColor: '#F6FFDE',
     marginLeft: 10,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 20,
-    marginTop: 20,
+    marginTop: 10,
   },
   buttonText: {
     fontSize: 16,
@@ -183,9 +211,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#478C5C',
+    flexDirection: 'row',
     padding: 20,
     borderRadius: 20,
-    marginTop: 5,
     width: '95%',
     alignSelf: 'center',
   },
@@ -193,10 +221,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
     fontFamily: 'popSemiBold',
+    width: '50%',
   },
   restImage: {
-    width: 200, 
-    height: 200, 
-    marginTop: 20,
+    width: 130, 
+    height: 120, 
+    marginTop: 10,
+  },
+  categoryTitle: {
+    marginLeft: 15,
+    marginTop: 10,
+    fontFamily: 'popSemiBold',
+    fontSize: 17,
+  },
+  contentTitle: {
+    fontFamily: 'popSemiBold',
+  },
+  content: {
+    fontFamily: 'popRegular',
+  },
+  categoryTitleWithArrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  arrowIcon: {
+    marginLeft: 5,
+  },
+  arrowContainer: {
+    flex: 1,
+    marginTop: 10,
+    marginRight: 15,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 });

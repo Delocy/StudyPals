@@ -155,18 +155,20 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F6FFDE',
   },
   timerContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   progress: {
-    marginBottom: 10,
+    marginBottom: 20,
   },
   timerText: {
-    fontSize: 36,
+    fontSize: 50,
     fontWeight: 'bold',
+    color: '#478C5C',
   },
   button: {
     padding: 10,
