@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import EditScreen from "./EditScreen";
 import Header from "../../components/Header";
+import { firestore, auth, firebase } from '../../../firebase.js';
 
 const INITIAL_WORK_DURATION = 25; // in minutes
 const INITIAL_SHORT_BREAK_DURATION = 5; // in minutes
@@ -21,16 +22,63 @@ const PomodoroScreen = () => {
   const [breakTime, setBreakTime] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [tintColor, setTintColor] = useState("#F6FFDE"); // Add state for tint color
-
   const navigation = useNavigation();
+  const userId = auth.currentUser.uid;
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
 
   useEffect(() => {
+    const createUserEntry = async () => {
+      try {
+        const userId = auth.currentUser.uid;
+        const userDoc = await firestore.collection('pomodoro').doc(userId).get();
+    
+        if (!userDoc.exists) {
+          // User document doesn't exist, create a new entry
+          await firestore.collection('pomodoro').doc(userId).set({
+            [currentDate]: {
+              totalWorkDuration: 0,
+              totalBreakDuration: 0,
+              totalFocusSessions: 0,
+            },
+          });
+        } else {
+          const userData = userDoc.data();
+          
+          if (!userData[currentDate]) {
+            // User document exists, but current date doesn't have an entry
+            await firestore.collection('pomodoro').doc(userId).update({
+              [currentDate]: {
+                totalWorkDuration: 0,
+                totalBreakDuration: 0,
+                totalFocusSessions: 0,
+              },
+            });
+          }
+        }
+      } catch (error) {
+        // Handle error while creating/updating the user entry
+        console.log('Error creating/updating user entry:', error);
+      }
+    };
+
+    createUserEntry();
+
     let interval = null;
   
     if (active && count > 0) {
       interval = setInterval(() => {
         setCount((prevCount) => prevCount - 1);
       }, 1000);
+      if (!breakTime) {
+        firestore.collection('pomodoro').doc(userId).update({
+          [`${currentDate}.totalWorkDuration`]: firebase.firestore.FieldValue.increment(1),
+        });
+      } else {
+        firestore.collection('pomodoro').doc(userId).update({
+          [`${currentDate}.totalBreakDuration`]: firebase.firestore.FieldValue.increment(1),
+        });
+      }
     } else {
       clearInterval(interval);
     }
@@ -41,6 +89,10 @@ const PomodoroScreen = () => {
       if (breakTime) {
         setBreakTime(false);
         setTintColor("#F6FFDE");
+
+        firestore.collection('pomodoro').doc(userId).update({
+          [`${currentDate}.totalFocusSessions`]: firebase.firestore.FieldValue.increment(1),
+        });
   
         if (numFocusSessions === 1) {
           setActive(false);
@@ -110,7 +162,7 @@ const PomodoroScreen = () => {
         onCancel={handleCancelEdit}
         workDuration={workDuration}
         shortBreakDuration={shortBreakDuration}
-        numFocusSessions={numFocusSessions}
+        numFocusSessions={modifiedNumFocusSessions}
       />
     );
   }

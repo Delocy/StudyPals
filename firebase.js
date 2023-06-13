@@ -27,4 +27,8 @@ if (firebase.apps.length === 0) {
 
 const auth = firebase.auth()
 
+<<<<<<< Updated upstream
 export { auth };
+=======
+export { auth, firestore, firebase};
+>>>>>>> Stashed changes
