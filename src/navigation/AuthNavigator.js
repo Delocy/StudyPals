@@ -11,6 +11,7 @@ import EmojiPickerScreen from '../screens/ShareYourWorriesScreen/EmojiPickerScre
 import MoodDetailsScreen from '../screens/ShareYourWorriesScreen/MoodDetailsScreen';
 import DiaryEntriesScreen from '../screens/ShareYourWorriesScreen/DiaryEntriesScreen';
 import EditTaskScreen from '../screens/CalendarScreen/EditTaskScreen';
+import MeditationScreen from '../screens/HomeScreen/Mindful';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -27,6 +28,7 @@ function AuthNavigator() {
         <Stack.Screen name="MoodDetails" component={MoodDetailsScreen} />
         <Stack.Screen name="DiaryEntries" component={DiaryEntriesScreen} />
         <Stack.Screen name="EditTask" component={EditTaskScreen} /> 
+        <Stack.Screen name="MeditationScreen" component={MeditationScreen} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
