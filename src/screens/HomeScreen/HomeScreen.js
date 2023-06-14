@@ -12,9 +12,11 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
+    const user = auth.currentUser;
 
     const tasksRef = firestore.collection('tasks');
-    const query = tasksRef.where('time', '==', currentDate);
+    const query = tasksRef.where('time', '==', currentDate)
+                          .where('userId', '==', user.uid);
 
     const unsubscribe = query.onSnapshot((snapshot) => {
       const totalCount = snapshot.size;
@@ -26,7 +28,6 @@ const HomeScreen = ({ navigation }) => {
       setShowChart(totalCount > 0); // Update showChart state
     });
 
-    const user = auth.currentUser;
     if (user) {
       setUserName(user.displayName);
     }

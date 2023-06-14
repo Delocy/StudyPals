@@ -90,7 +90,7 @@ const MentalHealthScreen = () => {
           style={[
             styles.filterButton,
             filter === '' && styles.filterButtonSelected,
-            filter === '' && { backgroundColor: 'black' },
+            filter === '' && { backgroundColor: '#478C5C' },
           ]}
           onPress={() => setFilter('')}
         >
@@ -179,11 +179,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: 'grey',
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 8,
     fontFamily: 'popRegular',
+    borderRadius: 20,
+    backgroundColor: 'white',
   },
   articleList: {
     flex: 1,
