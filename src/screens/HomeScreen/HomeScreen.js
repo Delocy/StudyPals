@@ -60,6 +60,10 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('Resources');
   };
 
+  const handleContainerPressToDiaryAnalytics = () => {
+    navigation.navigate('Diary Analytics');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -120,7 +124,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
         </View>
         <ScrollView horizontal>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToDiaryAnalytics}>
             <Text style={styles.contentTitle}>Diary</Text>
             <Text style={styles.content}>Track your mood</Text>
             <Image source={require('./Images/Diary.png')} style={styles.restImage} />
