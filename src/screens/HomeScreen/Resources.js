@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
   },
   filterButton: {
-    backgroundColor: '#dddddd',
+    backgroundColor: '#20525C',
     borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 8,
