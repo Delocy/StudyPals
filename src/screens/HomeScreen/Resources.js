@@ -147,6 +147,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#BFCAB4',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-evenly',
   },
   filterButton: {
-    backgroundColor: '#dddddd',
+    backgroundColor: '#20525C',
     borderRadius: 25,
     paddingVertical: 8,
     paddingHorizontal: 8,
