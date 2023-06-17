@@ -1,7 +1,8 @@
 import { Audio } from 'expo-av';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { CircularProgress } from 'react-native-circular-progress';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import Slider from '@react-native-community/slider';
+import { Entypo, AntDesign, SimpleLineIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const MeditationScreen = () => {
   const [timer, setTimer] = useState(0);
@@ -105,36 +106,52 @@ const MeditationScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.timerContainer}>
-        <CircularProgress
-          size={180}
-          width={15}
-          fill={progress}
-          tintColor="#478C5C"
-          backgroundColor="#EFEFEF"
-          rotation={0}
-          lineCap="round"
-          style={styles.progress}
-        >
-          {() => (
-            <Text style={styles.timerText}>{formatTime(timer)}</Text>
-          )}
-        </CircularProgress>
-      </View>
-      <TouchableOpacity style={styles.button} onPress={isRunning ? pauseTimer : startTimer}>
-        <Text style={styles.buttonText}>{isRunning ? 'Pause' : 'Start'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={resetTimer}>
-        <Text style={styles.buttonText}>Reset</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={toggleDuration}>
-        <Text style={styles.buttonText}>
-          {selectedDuration === 10 ? 'Switch to 20 mins' : 'Switch to 10 mins'}
-        </Text>
-      </TouchableOpacity>
-      <View style={styles.audioButtonContainer}>
-        <TouchableOpacity style={styles.audioButton} onPress={toggleMute}>
-          <Text style={styles.buttonText}>{isMuted ? 'Unmute' : 'Mute'}</Text>
+        <Image source={require('./Images/rainforest.png')} style={styles.image} />
+        <TouchableOpacity style={styles.button} onPress={toggleDuration}>
+            <Text style={styles.buttonText}>
+              {selectedDuration === 10 ? 'Switch to 20 mins' : 'Switch to 10 mins'}
+            </Text>
         </TouchableOpacity>
+        <View style={styles.buttons}>
+          <TouchableOpacity style={styles.button} onPress={resetTimer}>
+            <AntDesign name="reload1" size={24} color="#478C5C" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.buttonPlay} onPress={isRunning ? pauseTimer : startTimer}>
+            {isRunning ? (
+              <View style={styles.buttonContent}>
+                <MaterialCommunityIcons name="pause" size={24} color="white" />
+              </View>
+            ) : (
+              <View style={styles.buttonContent}>
+                <Entypo name="controller-play" size={24} color="white" />
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={toggleMute}>
+            {isMuted ? (
+              <SimpleLineIcons name="volume-off" size={24} color="#478C5C" />
+            ) : (
+              <SimpleLineIcons name="volume-2" size={24} color="#478C5C" />
+            )}
+          </TouchableOpacity>
+        </View>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={selectedDuration * 60}
+          value={timer}
+          minimumTrackTintColor="#478C5C"
+          maximumTrackTintColor="lightgrey"
+          thumbTintColor="#478C5C"
+        />
+        <View style={styles.startEnd}>
+          <View style={{ flex: 1, alignItems: 'flex-start', marginLeft: 27, }}>
+            <Text style={styles.timerText}>{formatTime(timer)}</Text>
+          </View>
+          <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 27 }}>
+            <Text style={styles.timerText}>{formatTime(selectedDuration * 60)}</Text>
+          </View>
+        </View>
       </View>
       <View style={styles.instructionsContainer}>
         <Text style={styles.instructions}>Instructions:</Text>
@@ -159,32 +176,51 @@ const styles = StyleSheet.create({
   },
   timerContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
   },
   progress: {
     marginBottom: 20,
   },
+  image: {
+    width: 260,
+    height: 260,
+    margin: 10,
+  },
   timerText: {
-    fontSize: 50,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontFamily: 'popRegular',
     color: '#478C5C',
+    margin: 5,
   },
   button: {
     padding: 10,
+    backgroundColor: 'white',
+    borderRadius: 5,
+    margin: 5,
+    borderColor: '#478C5C',
+    borderWidth: 1,
+  },
+  buttonPlay: {
+    padding: 10,
     backgroundColor: '#478C5C',
     borderRadius: 5,
-    marginBottom: 10,
+    margin: 5,
+    borderColor: '#478C5C',
+    borderWidth: 1,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: '#478C5C',
     fontWeight: 'bold',
-    
+    marginRight: 5,
+    fontFamily: 'popSemiBold',
   },
-  audioButtonContainer: {
+  startEnd: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    alignItems: 'flex-end',
   },
   audioButton: {
     padding: 10,
@@ -194,16 +230,28 @@ const styles = StyleSheet.create({
   },
   instructionsContainer: {
     alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 25,
   },
   instructions: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'popSemiBold',
     marginBottom: 10,
   },
   instructionText: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 5,
+    fontFamily: 'popRegular',
+  },
+  slider: {
+    width: 370,
+    height: 40,
+  },
+  buttons: {
+    flexDirection: 'row',
+    margin: 5,
   },
 });
 

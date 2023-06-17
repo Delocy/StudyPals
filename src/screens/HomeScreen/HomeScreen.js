@@ -12,9 +12,11 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     const currentDate = new Date().toISOString().split('T')[0];
+    const user = auth.currentUser;
 
     const tasksRef = firestore.collection('tasks');
-    const query = tasksRef.where('time', '==', currentDate);
+    const query = tasksRef.where('time', '==', currentDate)
+                          .where('userId', '==', user.uid);
 
     const unsubscribe = query.onSnapshot((snapshot) => {
       const totalCount = snapshot.size;
@@ -26,7 +28,6 @@ const HomeScreen = ({ navigation }) => {
       setShowChart(totalCount > 0); // Update showChart state
     });
 
-    const user = auth.currentUser;
     if (user) {
       setUserName(user.displayName);
     }
@@ -51,8 +52,16 @@ const HomeScreen = ({ navigation }) => {
   const quote = getQuote(completionPercentage);
   const tasksLeft = taskCount - completedCount;
 
-  const handleContainerPress = () => {
-    navigation.navigate('MeditationScreen');
+  const handleContainerPressToMeditation = () => {
+    navigation.navigate('Meditation');
+  };
+
+  const handleContainerPressToResources = () => {
+    navigation.navigate('Resources');
+  };
+
+  const handleContainerPressToDiaryAnalytics = () => {
+    navigation.navigate('Diary Analytics');
   };
 
   const navigateToTimerAnalytics = () => {
@@ -99,13 +108,15 @@ const HomeScreen = ({ navigation }) => {
             </View>
         </View>
         <ScrollView horizontal>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
             <Text style={styles.contentTitle}>Meditation</Text>
             <Text style={styles.content}>Take a deep breath</Text>
             <Image source={require('./Images/Meditate.png')} style={styles.restImage} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
-            <Text>Another Button</Text>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToResources}>
+            <Text style={styles.contentTitle}>Resources</Text>
+            <Text style={styles.content}>5 mins read</Text>
+            <Image source={require('./Images/reading.png')} style={styles.restImage} />
             </TouchableOpacity>
         </ScrollView>
       </View>
@@ -117,7 +128,7 @@ const HomeScreen = ({ navigation }) => {
             </View>
         </View>
         <ScrollView horizontal>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToDiaryAnalytics}>
             <Text style={styles.contentTitle}>Diary</Text>
             <Text style={styles.content}>Track your mood</Text>
             <Image source={require('./Images/Diary.png')} style={styles.restImage} />
