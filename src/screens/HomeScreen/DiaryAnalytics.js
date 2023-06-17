@@ -219,6 +219,6 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     fontFamily: 'popSemiBold',
-    padding: 42,
+    paddingVertical: 40,
   },
 });

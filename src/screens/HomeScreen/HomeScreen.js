@@ -15,8 +15,9 @@ const HomeScreen = ({ navigation }) => {
     const user = auth.currentUser;
 
     const tasksRef = firestore.collection('tasks');
-    const query = tasksRef.where('time', '==', currentDate)
-                          .where('userId', '==', user.uid);
+    const query = tasksRef
+    .where('time', '==', currentDate)
+    .where('userId', '==', user.uid);
 
     const unsubscribe = query.onSnapshot((snapshot) => {
       const totalCount = snapshot.size;
