@@ -55,6 +55,10 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('MeditationScreen');
   };
 
+  const navigateToTimerAnalytics = () => {
+    navigation.navigate('Timer Analytics');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -118,7 +122,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.content}>Track your mood</Text>
             <Image source={require('./Images/Diary.png')} style={styles.restImage} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPress}>
+            <TouchableOpacity style={styles.containerButton} onPress={navigateToTimerAnalytics}>
             <Text style={styles.contentTitle}>Timer</Text>
             <Text style={styles.content}>See how focused you are</Text>
             <Image source={require('./Images/Timer.png')} style={styles.restImage} />

@@ -26,41 +26,38 @@ const PomodoroScreen = () => {
   const userId = auth.currentUser.uid;
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
-
   useEffect(() => {
     const createUserEntry = async () => {
       try {
         const userId = auth.currentUser.uid;
         const userDoc = await firestore.collection('pomodoro').doc(userId).get();
-    
-        if (!userDoc.exists) {
-          // User document doesn't exist, create a new entry
-          await firestore.collection('pomodoro').doc(userId).set({
-            [currentDate]: {
-              totalWorkDuration: 0,
-              totalBreakDuration: 0,
-              totalFocusSessions: 0,
-            },
-          });
-        } else {
-          const userData = userDoc.data();
-          
-          if (!userData[currentDate]) {
-            // User document exists, but current date doesn't have an entry
-            await firestore.collection('pomodoro').doc(userId).update({
+
+          if (!userDoc.exists) {
+            // User document doesn't exist, create a new entry
+            await firestore.collection('pomodoro').doc(userId).set({
               [currentDate]: {
                 totalWorkDuration: 0,
                 totalBreakDuration: 0,
-                totalFocusSessions: 0,
               },
             });
+          } else {
+            const userData = userDoc.data();
+
+            if (!userData[currentDate]) {
+              // User document exists, but current date doesn't have an entry
+              await firestore.collection('pomodoro').doc(userId).update({
+                [`${currentDate}`]: {
+                  totalWorkDuration: 0,
+                  totalBreakDuration: 0,
+                },
+              });
+            }
           }
+        } catch (error) {
+          // Handle error while creating/updating the user entry
+          console.log('Error creating/updating user entry:', error);
         }
-      } catch (error) {
-        // Handle error while creating/updating the user entry
-        console.log('Error creating/updating user entry:', error);
-      }
-    };
+      };
 
     createUserEntry();
 
@@ -70,15 +67,6 @@ const PomodoroScreen = () => {
       interval = setInterval(() => {
         setCount((prevCount) => prevCount - 1);
       }, 1000);
-      if (!breakTime) {
-        firestore.collection('pomodoro').doc(userId).update({
-          [`${currentDate}.totalWorkDuration`]: firebase.firestore.FieldValue.increment(1),
-        });
-      } else {
-        firestore.collection('pomodoro').doc(userId).update({
-          [`${currentDate}.totalBreakDuration`]: firebase.firestore.FieldValue.increment(1),
-        });
-      }
     } else {
       clearInterval(interval);
     }
@@ -90,9 +78,12 @@ const PomodoroScreen = () => {
         setBreakTime(false);
         setTintColor("#F6FFDE");
 
-        firestore.collection('pomodoro').doc(userId).update({
-          [`${currentDate}.totalFocusSessions`]: firebase.firestore.FieldValue.increment(1),
-        });
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalBreakDuration`]: firebase.firestore.FieldValue.increment(shortBreakDuration),
+          },
+          { merge: true }
+        )    
   
         if (numFocusSessions === 1) {
           setActive(false);
@@ -106,6 +97,13 @@ const PomodoroScreen = () => {
         setBreakTime(true);
         setTintColor("#fff");
         setCount(shortBreakDuration * 60);
+
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalWorkDuration`]: firebase.firestore.FieldValue.increment(workDuration),
+          },
+          { merge: true }
+        );
       }
     }
   
@@ -124,7 +122,6 @@ const PomodoroScreen = () => {
   const handleReset = () => {
     setActive(false);
     setCount(workDuration * 60);
-    setNumFocusSessions(modifiedNumFocusSessions);
     setBreakTime(false);
     setTintColor("#F6FFDE");
   };
@@ -180,7 +177,7 @@ const PomodoroScreen = () => {
         <AnimatedCircularProgress
           size={250}
           width={11}
-          fill={(count * 100) / (workDuration * 60)}
+          fill={breakTime ? 100 : (count * 100) / (workDuration * 60)}
           tintColor={tintColor}
         >
           {() => (
