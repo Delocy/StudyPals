@@ -127,7 +127,7 @@ const DiaryAnalyticsScreen = () => {
           <View key={item.emoji} style={styles.emojiItem}>
             <Text style={styles.emoji}>{item.emoji}</Text>
             <Text style={styles.count}>{item.count}</Text>
-            <Text style={styles.additionalInfo}>Average Rating: {item.averageRating}</Text>
+            <Text style={styles.additionalInfo}>Sentiment score: {item.averageRating}</Text>
             <Text style={styles.percentage}>
               {((item.count / totalReflectionsCount) * 100).toFixed(2)}%
             </Text>
