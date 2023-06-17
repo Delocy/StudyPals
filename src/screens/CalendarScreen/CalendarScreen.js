@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import Tag from './TagColors';
 import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Agenda } from 'react-native-calendars';
 import { Card } from 'react-native-paper';
-import { initializeApp } from "firebase/app";
+import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { Agenda } from 'react-native-calendars';
+import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { Ionicons } from '@expo/vector-icons';
-import { Feather, MaterialIcons } from '@expo/vector-icons'; 
-//import { getAnalytics } from "firebase/analytics";
-import { getFirestore, query, where ,collection, deleteDoc, doc, onSnapshot } from "firebase/firestore";
+import {
+  getFirestore,
+  query,
+  where,
+  collection,
+  deleteDoc,
+  updateDoc,
+  getDoc,
+  doc,
+  onSnapshot,
+} from 'firebase/firestore';
+import Tag from './TagColors';
+
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -53,9 +62,9 @@ const CalendarScreen = ({ navigation }) => {
   const user = auth.currentUser;
 
   const openModal = (task, taskId) => {
+    setIsModalVisible(true);
     setSelectedTask(task);
     setSelectedTaskId(taskId);
-    setIsModalVisible(true);
   };
 
   const closeModal = () => {
@@ -79,6 +88,10 @@ const CalendarScreen = ({ navigation }) => {
   
           if (!formattedItems[strTime]) {
             formattedItems[strTime] = [];
+            formattedMarkedDates[strTime] = {
+              marked: true,
+              dotColor: '#478C5C',
+            };
           }
   
           formattedItems[strTime].push({
@@ -89,12 +102,8 @@ const CalendarScreen = ({ navigation }) => {
             endTime: task.endTime,
             time: task.time,
             tags: task.tags || [],
+            completed: task.completed,
           });
-          formattedMarkedDates[strTime] = {
-            marked: true,
-            dotColor: '#478C5C',
-            // selectedDotColor: '#ffffff',
-          };
         });
   
         // Sort the tasks by start time in ascending order
@@ -105,15 +114,15 @@ const CalendarScreen = ({ navigation }) => {
           );
         });
   
-        setItems(sortedItems);
-        setMarkedDates(formattedMarkedDates);
+        setItems(sortedItems); // Update the state with the sorted items
+        setMarkedDates(formattedMarkedDates); // Update the state with the formatted marked dates
       });
   
       return unsubscribe; // Return the unsubscribe function to clean up the subscription
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
-  };  
+  };    
 
   const navigateToAddTaskScreen = () => {
     navigation.navigate('AddTask', { date: selectedDate });
@@ -135,19 +144,47 @@ const CalendarScreen = ({ navigation }) => {
     }
   };
 
+  const handleComplete = async () => {
+    try {
+      const taskRef = doc(db, 'tasks', selectedTaskId);
+      const taskDoc = await getDoc(taskRef);
+      if (taskDoc.exists()) {
+        const currentCompleted = taskDoc.data().completed || false;
+        await updateDoc(taskRef, {
+          completed: !currentCompleted,
+        });
+        setSelectedTask((prevTask) => ({
+          ...prevTask,
+          completed: !prevTask.completed,
+        }));
+      }
+      closeModal();
+      loadTasks();
+    } catch (error) {
+      console.error('Error toggling completed status:', error);
+    }
+  };
+  
+  
+  
   const renderItem = (item) => {
     const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
     const endTime = new Date(item.endTime.seconds * 1000);
-  
+
     const startTimeString = startTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     const endTimeString = endTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    
+
+    const textDecoration = item.completed ? 'line-through' : 'none';
+
     return (
-      <TouchableOpacity style={{ marginLeft:20, marginRight: 20, marginTop: 20 }} onPress={() => openModal(item, item.id)}>
+      <TouchableOpacity
+        style={{ marginLeft: 20, marginRight: 20, marginTop: 20 }}
+        onPress={() => openModal(item, item.id)}
+      >
         <Card style={styles.card}>
           <Card.Content style={styles.cardContent}>
             <View style={styles.cardTextContainer}>
-              <Text style={styles.cardText}>{item.name}</Text>
+              <Text style={[styles.cardText, { textDecorationLine: textDecoration }]}>{item.name}</Text>
               <Text style={styles.cardTextDescription}>{item.description.toString()}</Text>
               <Text style={styles.cardTextDescription}>{startTimeString} - {endTimeString}</Text>
               <View style={{ flexDirection: 'row', marginTop: 8 }}>
@@ -161,7 +198,6 @@ const CalendarScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
-  
 
   const renderEmptyDate = () => {
     return (
@@ -189,10 +225,13 @@ const CalendarScreen = ({ navigation }) => {
           return <View/>;
         }}
         onDayPress={(date) => {
-          setSelectedDate(date.dateString);
+          const selectedDateString = date.dateString;
+          setSelectedDate(selectedDateString);
+          setItems({}); // Clear the items state
+          setMarkedDates({}); // Clear the markedDates state
           const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
           setSubtitle(selectedMonth);
-        }}
+        }}         
         showOnlySelectedDayItems
       />
       <View style={styles.bottomContainer}>
@@ -221,6 +260,12 @@ const CalendarScreen = ({ navigation }) => {
                 <View style={styles.buttonContent}>
                   <MaterialIcons name="delete-outline" size={24} color="white" />
                   <Text style={styles.buttonText}>Delete</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalOption, styles.completeButton]} onPress={handleComplete}>
+                <View style={styles.buttonContent}>
+                  <Ionicons name="checkbox-outline" size={24} color="white" />
+                  <Text style={styles.buttonText}>Complete</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -388,19 +433,29 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 1,
-    borderRightWidth: 1,
-    borderRightColor: '#cccccc',
     marginRight: 10,
-    backgroundColor: '#478C5C',
+    backgroundColor: 'blue',
     paddingVertical: 10,
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteButton: {
     flex: 1,
-    marginLeft: 10,
     backgroundColor: 'red',
     paddingVertical: 10,
     borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  completeButton: {
+    flex: 1,
+    marginLeft: 10,
+    backgroundColor: '#478C5C', // Set the background color to blue
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonContent: {
     flexDirection: 'column',

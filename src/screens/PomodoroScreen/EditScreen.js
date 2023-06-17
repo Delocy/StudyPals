@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   slider: {
-    color: '#013A20',
     width: 300,
   },
   buttonsContainer: {

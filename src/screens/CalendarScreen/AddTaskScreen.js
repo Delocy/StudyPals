@@ -52,7 +52,6 @@ const AddTaskScreen = ({ route, navigation }) => {
     // Perform form validation
     if (
       !taskName ||
-      !taskDescription ||
       !taskStartTime ||
       !taskEndTime
     ) {
@@ -73,6 +72,7 @@ const AddTaskScreen = ({ route, navigation }) => {
           tags: selectedTags,
           // Add more properties as needed
           userId: user.uid, // Include the user's ID
+          completed: false,
         };
   
         await addDoc(collection(db, 'tasks'), task);
@@ -135,25 +135,24 @@ const AddTaskScreen = ({ route, navigation }) => {
   
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Task Name:</Text>
+      <Text style={styles.label}>Task Name *</Text>
       <TextInput
         style={styles.input}
         value={taskName}
         onChangeText={setTaskName}
         placeholder="Enter task name"
       />
-      <Text style={styles.label}>Task Description:</Text>
+      <Text style={styles.label}>Description</Text>
       <TextInput
         style={styles.input}
         value={taskDescription}
         onChangeText={setTaskDescription}
         placeholder="Enter task description"
       />
-      <Text style={styles.label}>Time:</Text>
       {/* Display the selected task time */}
       <View style={styles.timeContainer}>
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>Start:</Text>
+          <Text style={[styles.label]}>Start Time *</Text>
           <TouchableOpacity style={styles.input} onPress={showStartTimePicker}>
             <Text style={[styles.timeText, taskStartTime && styles.selectedTimeText]}>
               {taskStartTime ? formatTime(taskStartTime) : 'Select'}
@@ -162,7 +161,7 @@ const AddTaskScreen = ({ route, navigation }) => {
         </View>
 
         <View style={styles.timeInputContainer}>
-          <Text style={[styles.label, styles.timeLabel]}>End:</Text>
+          <Text style={[styles.label]}>End Time *</Text>
           <TouchableOpacity style={styles.input} onPress={showEndTimePicker}>
             <Text style={[styles.timeText, taskEndTime && styles.selectedTimeText]}>
               {taskEndTime ? formatTime(taskEndTime) : 'Select'}
@@ -190,7 +189,7 @@ const AddTaskScreen = ({ route, navigation }) => {
       />
 
       <View style={styles.tagContainer}>
-        <Text style={styles.label}>Tags:</Text>
+        <Text style={styles.label}>Tags *</Text>
         <View style={styles.tagButtonContainer}>
           {availableTags.map((tag) => (
             <TouchableOpacity
@@ -268,10 +267,6 @@ const styles = StyleSheet.create({
   timeInputContainer: {
     flex: 1,
     marginRight: 8,
-  },
-  timeLabel: {
-    marginRight: 8,
-    fontFamily: 'popRegular',
   },
   timeText: {
     textAlign: 'center',

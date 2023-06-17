@@ -31,6 +31,10 @@ function AuthNavigator() {
         <Stack.Screen name="GeneratedPrompt" component={GeneratedPromptScreen} />
         <Stack.Screen name="DiaryEntries" component={DiaryEntriesScreen} />
         <Stack.Screen name="EditTask" component={EditTaskScreen} /> 
+        <Stack.Screen name="Meditation" component={MeditationScreen} /> 
+        <Stack.Screen name="Resources" component={ResourcesScreen} />
+        <Stack.Screen name="Timer Analytics" component={TimerAnalyticsScreen} />
+        <Stack.Screen name="Diary Analytics" component={DiaryAnalyticsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
