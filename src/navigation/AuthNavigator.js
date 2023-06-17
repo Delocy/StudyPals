@@ -8,9 +8,13 @@ import RegisterScreen from '../screens/RegisterScreen';
 import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 import AddTaskScreen from '../screens/CalendarScreen/AddTaskScreen';
 import EmojiPickerScreen from '../screens/ShareYourWorriesScreen/EmojiPickerScreen';
-import MoodDetailsScreen from '../screens/ShareYourWorriesScreen/MoodDetailsScreen';
 import DiaryEntriesScreen from '../screens/ShareYourWorriesScreen/DiaryEntriesScreen';
 import EditTaskScreen from '../screens/CalendarScreen/EditTaskScreen';
+import MeditationScreen from '../screens/HomeScreen/Mindful';
+import ResourcesScreen from '../screens/HomeScreen/Resources';
+import TimerAnalyticsScreen from '../screens/HomeScreen/TimerAnalyticsScreen';
+import DiaryAnalyticsScreen from '../screens/HomeScreen/DiaryAnalytics';
+import GeneratedPromptScreen from '../screens/ShareYourWorriesScreen/GeneratedPromptScreen';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -24,7 +28,7 @@ function AuthNavigator() {
         <Stack.Screen name='ResetPassword' options={{ headerShown: false }} component={ResetPasswordScreen} />
         <Stack.Screen name="AddTask" component={AddTaskScreen} />
         <Stack.Screen name="EmojiPicker" component={EmojiPickerScreen} />
-        <Stack.Screen name="MoodDetails" component={MoodDetailsScreen} />
+        <Stack.Screen name="GeneratedPrompt" component={GeneratedPromptScreen} />
         <Stack.Screen name="DiaryEntries" component={DiaryEntriesScreen} />
         <Stack.Screen name="EditTask" component={EditTaskScreen} /> 
       </Stack.Navigator>
