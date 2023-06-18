@@ -252,19 +252,19 @@ const CalendarScreen = ({ navigation }) => {
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity style={[styles.modalOption, styles.editButton]} onPress={navigateToEditTaskScreen}>
                 <View style={styles.buttonContent}>
-                  <Feather name="edit" size={24} color="white" />
+                  <Feather name="edit" size={24} color="black" />
                   <Text style={styles.buttonText}>Edit</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalOption, styles.deleteButton]} onPress={handleDelete}>
                 <View style={styles.buttonContent}>
-                  <MaterialIcons name="delete-outline" size={24} color="white" />
+                  <MaterialIcons name="delete-outline" size={24} color="black" />
                   <Text style={styles.buttonText}>Delete</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalOption, styles.completeButton]} onPress={handleComplete}>
                 <View style={styles.buttonContent}>
-                  <Ionicons name="checkbox-outline" size={24} color="white" />
+                  <Ionicons name="checkbox-outline" size={24} color="black" />
                   <Text style={styles.buttonText}>Complete</Text>
                 </View>
               </TouchableOpacity>
@@ -378,10 +378,6 @@ const styles = StyleSheet.create({
     marginRight: 4,
     marginBottom: 4,
   },
-  deleteButton: {
-    color: 'red',
-    fontSize: 16,
-  },
   emptyDate: {
     height: 15,
     flex: 1,
@@ -434,7 +430,7 @@ const styles = StyleSheet.create({
   editButton: {
     flex: 1,
     marginRight: 10,
-    backgroundColor: 'blue',
+    backgroundColor: '#99C3EC',
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',
@@ -442,7 +438,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flex: 1,
-    backgroundColor: 'red',
+    backgroundColor: '#F69C9E',
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',
@@ -451,7 +447,7 @@ const styles = StyleSheet.create({
   completeButton: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: '#478C5C', // Set the background color to blue
+    backgroundColor: '#97E3C2', 
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',
@@ -462,7 +458,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#ffffff',
+    color: 'black',
     fontSize: 16,
     textAlign: 'center',
     fontFamily: 'popRegular',
