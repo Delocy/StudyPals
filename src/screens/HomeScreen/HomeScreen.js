@@ -97,7 +97,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       ) : (
         <View style={styles.restDayContainer}>
-          <Text numberOfLines={3} style={styles.restDayText}>It's your rest day!You have no task planned for the day</Text>
+          <Text numberOfLines={4} style={styles.restDayText}>It's your rest day!You have no task planned for the day.</Text>
           <Image source={require('./Images/dog.png')} style={styles.restImage} />
         </View>
       )}
