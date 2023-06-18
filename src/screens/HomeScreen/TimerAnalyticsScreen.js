@@ -331,8 +331,12 @@ const TimerAnalyticsScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.streakContainer}>
-        <Text style={styles.streakText}>Current Streak: {streakCount}</Text>
-        <FontAwesome5 name="fire" size={25} color="orange" />
+        <Card style={styles.cardFirstContainer}>
+          <Card.Content style={styles.cardContent}>
+            <Text style={styles.streakText}>Current Streak: {streakCount}</Text>
+            <FontAwesome5 name="fire" size={40} color="orange" style={styles.fireIcon} />
+          </Card.Content>
+        </Card>
       </View>
       <View style={styles.chartContainer}>
         <Swiper loop={false} showsPagination={false} onIndexChanged={handleSlideChange}>
@@ -354,16 +358,18 @@ const TimerAnalyticsScreen = () => {
           <Card.Content>
             <Text style={styles.cardSecondTitle}>Overall Statistics</Text>
             <Text style={styles.cardText}>
-              Total Focus Time: {hours} hrs {minutes} mins
+              Total Focus Time: {hours} Hrs {minutes} Mins
             </Text>
             <Text style={styles.cardText}>
-              Focus/Break Ratio: {(overallStats.totalWorkDuration / overallStats.totalBreakDuration).toFixed(2)}
+              Focus/Break Ratio: {overallStats.totalBreakDuration === 0
+                ? 0
+                : (overallStats.totalWorkDuration / overallStats.totalBreakDuration).toFixed(2)}
             </Text>
             <Text style={styles.cardText}>Most Productive Date: {mostProductiveDay}</Text>
-            <Text style={styles.cardText}>Longest Work Duration: {mostProductiveHrs} mins</Text>
+            <Text style={styles.cardText}>Longest Work Duration: {mostProductiveHrs} Mins</Text>
             <View style={styles.longestStreakContainer}>
               <Text style={[styles.cardText, { marginRight: 5 }]}>Longest Streak: {longestStreak}</Text>
-              <FontAwesome5 name="fire" size={25} color="orange" />
+              <FontAwesome5 name="fire" size={30} color="orange" />
             </View>
           </Card.Content>
         </Card>
@@ -375,6 +381,7 @@ const TimerAnalyticsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
     backgroundColor: '#fff',
   },
   loadingContainer: {
@@ -384,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#013A20',
   },
   chartContainer: {
-    flex: 3,
+    flex: 5,
   },
   cardTitle: {
     fontFamily: 'popBold',
@@ -395,14 +402,13 @@ const styles = StyleSheet.create({
   cardSecondTitle: {
     fontFamily: 'popBold',
     fontSize: 22,
-    marginBottom: 10,
     color: '#478C5C',
     textAlign: 'center',
   },
   cardText: {
     fontFamily: 'popMedium',
     fontSize: 14,
-    marginTop: 5,
+    marginTop: 10,
   },
   contentContainerStyle: {
     flexGrow: 1,
@@ -413,13 +419,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#478C5C',
     width: '95%',
     borderRadius: 16,
-    marginBottom: 20,
+    marginBottom: '5%',
+  },
+  cardFirstContainer: {
+    backgroundColor: '#013A20',
+    width: '95%',
+    borderRadius: 16,
+    paddingTop: '10%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardSecondContainer: {
     backgroundColor: '#E8FEEE',
     width: '95%',
     borderRadius: 16,
-    marginBottom: 20,
   },
   weekInsightsContainer: {
     alignItems: 'center',
@@ -432,27 +446,32 @@ const styles = StyleSheet.create({
   },
   chartStyle: {
     borderRadius: 16,
-    marginBottom: 30,
   },
   streakContainer: {
-    marginTop: 10,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
+    flex: 2,
   },
   longestStreakContainer: {
     flexDirection: 'row',
   },
   streakText: {
-    fontFamily: 'popMedium',
-    fontSize: 18,
-    marginRight: 7,
-    color: '#478C5C',
+    fontFamily: 'popSemiBold',
+    fontSize: 30,
+    color: '#FFFFFF',
+    marginRight: 10,
+    textAlign: 'center',
+    marginBottom: '4%',
   },
   bottomContainer: {
-    justifyContent: 'flex-end',
-    marginBottom: 150,
     alignItems: 'center',
+    flex: 3,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 
