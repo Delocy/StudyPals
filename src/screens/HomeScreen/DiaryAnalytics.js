@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#26580F',
     borderRadius: 20,
     alignItems: 'center',
+    width: '100%',
   },
   quote: {
     fontSize: 18,
