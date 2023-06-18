@@ -4,26 +4,11 @@ import TextInput from '../../components/TextInput';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
-import { firestore, auth } from '../../../firebase.js';
+import { firestore, auth, firebase } from '../../../firebase.js';
+import Toast from '../../components/Toast';
+//import dotenv from 'dotenv';
 
-function getMonthName(month) {
-  const monthNames = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  return monthNames[parseInt(month) - 1];
-}
-
+//dotenv.config(); // Call dotenv.config() to load the environment variables
 
 const ShareYourWorriesScreen = ({ navigation }) => {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
@@ -35,8 +20,10 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   const [diaryEntries, setDiaryEntries] = useState([]); // State variable for diary entries
   const [showBenefits, setShowBenefits] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [toastMessage, setToastMessage] = useState('');
   const userId = auth.currentUser.uid;
   const userName = auth.currentUser.displayName;
+  const [showPrompt, setShowPrompt] = useState(false);
 
   useEffect(() => {
     const fetchDiaryEntries = async () => {
@@ -56,7 +43,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     };
   
     fetchDiaryEntries();
-  }, []);  
+  }, []);
 
   const handleEmojiSelection = (emoji) => {
     setSelectedEmoji(emoji);
@@ -64,17 +51,20 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   };
 
   const navigateToGeneratedPrompt = async () => { //create new screen for openai prompt
-    addToDiary();
+    if (!selectedEmoji) {
+      setToastMessage('Please select an emoji before proceeding');
+      return;
+    }
     /*try {
-      const response = await fetch(gptLink, {
+      const response = await fetch(process.env.GPT_LINK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`, // Replace with your OpenAI API key
+          'Authorization': `Bearer ${process.env.API_KEY}`, // Use the environment variables
         },
         body: JSON.stringify({
           prompt: message + 'please give me a short encouragement message to make my day. use humanlike and personal voice',
-          max_tokens: 100,
+          max_tokens: 40,
         }),
       });
 
@@ -86,6 +76,10 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error:', error);
     }*/
+    addToDiary();
+    const quote = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
+    setGeneratedPrompt(quote);
+    navigation.navigate('GeneratedPrompt', { generatedPrompt: generatedPrompt })
   };
 
   const renderEmojiImage = () => {
@@ -102,46 +96,44 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     }
   };
 
-  /*const addToDiary = () => {
-    const date = new Date();
-    const formattedDate = `${date.getDate()} ${getMonthName(date.getMonth() + 1)} ${date.getFullYear()}`;
-    const newEntry = {
-      message: message,
-      emoji: selectedEmoji,
-      timestamp: formattedDate, // Add the current date to the entry
-    };
-    setDiaryEntries([...diaryEntries, newEntry]);
-    setMessage(''); // Clear the message input after adding to the diary
-    setSelectedEmoji(''); // Clear the selected emoji after adding to the diary
-    saveDiaryEntryToFirestore(userId, message, selectedEmoji, formattedDate); // Call the saveToFirestore function to save the entry to Firestore
-  };*/
-
   const addToDiary = async () => {
-    const date = new Date();
-    const formattedDate = `${date.getDate()} ${getMonthName(date.getMonth() + 1)} ${date.getFullYear()}`;
+    // Check if generatedPrompt is null
+    if (generatedPrompt === null) {
+      setToastMessage('Waiting for StudyPals response...');
+      console.log('Waiting for generated prompt to be available...');
+      return;
+    }
+
+    const timestamp = firebase.firestore.Timestamp.now();
     const newEntry = {
       message: message,
+      generatedPrompt: generatedPrompt,
       emoji: selectedEmoji,
-      timestamp: formattedDate, // Add the current date to the entry
+      timestamp: timestamp, // Use the timestamp instead of formatted date
     };
   
     try {
-      const diaryEntriesRef = firestore.collection('diaryEntries'); // Use the firestore object here
+      const diaryEntriesRef = firestore.collection('diaryEntries');
+      const startOfDay = new Date().setHours(0, 0, 0, 0);
+      const endOfDay = new Date().setHours(23, 59, 59, 999);
       const querySnapshot = await diaryEntriesRef
         .where('userId', '==', userId)
-        .where('timestamp', '==', formattedDate) //Can try to put other dates for testing.
+        .where('timestamp', '>=', firebase.firestore.Timestamp.fromDate(new Date(startOfDay)))
+        .where('timestamp', '<=', firebase.firestore.Timestamp.fromDate(new Date(endOfDay)))
         .get();
   
       if (querySnapshot.empty) {
         await diaryEntriesRef.add({
           userId: userId,
           message: message,
+          generatedPrompt: generatedPrompt,
           emoji: selectedEmoji,
-          timestamp: formattedDate,
+          timestamp: timestamp,
         });
         console.log('Diary entry saved to Firestore');
         setDiaryEntries([...diaryEntries, newEntry]);
       } else {
+        setToastMessage('A diary entry for today already exists!');
         console.log('A diary entry for the current user and date already exists.');
       }
     } catch (error) {
@@ -151,22 +143,20 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     setMessage(''); // Clear the message input after adding to the diary
     setSelectedEmoji(''); // Clear the selected emoji after adding to the diary
   };
-  
 
   const renderEmptyDiary = () => {
+    // Sort diaryEntries by timestamp in ascending order
+    const sortedEntries = diaryEntries.sort(
+      (a, b) => a.timestamp.toDate() - b.timestamp.toDate()
+    );
+    // Get the three most recent entries
+    const recentEntries = sortedEntries.slice(-3).reverse();
+  
     const flipCard = () => {
       setShowBenefits(!showBenefits);
     };
   
-    const hasRecentEntries = diaryEntries.some((entry) => {
-      const entryDate = new Date(entry.timestamp);
-      const currentDate = new Date();
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(currentDate.getDate());
-      return entryDate >= threeDaysAgo;
-    });
-  
-    if (!hasRecentEntries || diaryEntries.length === 0) {
+    if (!recentEntries.length) {
       return (
         <TouchableOpacity style={styles.emptyDiaryContainer} onPress={flipCard}>
           <View style={styles.emptyDiaryCard}>
@@ -195,8 +185,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     } else {
       return null;
     }
-  };  
-  
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -214,12 +203,14 @@ const ShareYourWorriesScreen = ({ navigation }) => {
             returnKeyType="next"
             value={message}
             onChangeText={setMessage}
+            autoCapitalize="none"
+            autoComplete="off"
             scrollEnabled
             />
             <Button mode="contained" onPress={navigateToGeneratedPrompt} style={{width: '80%'}}> 
               Get a personalised encouragement!
             </Button>
-            <Text>{generatedPrompt}</Text>
+            {toastMessage && <Toast message={toastMessage} onDismiss={() => setToastMessage('')} />}
         </View>
 
         <Modal visible={showEmojiPicker} animationType="slide" transparent>
@@ -266,8 +257,8 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           <Text style={styles.btmHeadText}>Diary</Text>
           <TouchableOpacity
             mode="contained"
-            onPress={() => navigation.navigate('DiaryEntries', { diaryEntries })}
-          >
+            onPress={() => navigation.navigate('DiaryEntries', { diaryEntries: [diaryEntries] })}
+            >
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
@@ -277,24 +268,58 @@ const ShareYourWorriesScreen = ({ navigation }) => {
         ) : (
         <View style={styles.btmContainer}>
           {diaryEntries
-            .slice(-3)
-            .reverse()
+            .filter(entry => {
+              // Get the timestamp for three days ago
+              const threeDaysAgo = new Date();
+              threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
+
+              // Filter entries that have a timestamp greater than or equal to three days ago
+              return entry.timestamp.toDate() >= threeDaysAgo;
+            })
+            .sort((a, b) => b.timestamp.toDate() - a.timestamp.toDate()) // Sort entries by timestamp in descending order
+            .slice(0, 3) // Get the first three entries
             .map((entry, index) => {
-              const dateParts = entry.timestamp.split(' ');
-              const formattedDate = `${dateParts[0]} ${dateParts[1]} ${dateParts[2]}`.replace(',', '');  
+              const timestamp = entry.timestamp.toDate();
+              const formattedDate = timestamp.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              });
+              
+              const handlePromptModalOpen = async () => {
+                try {
+                  setGeneratedPrompt(entry.generatedPrompt);
+                  setShowPrompt(true);
+                } catch (error) {
+                  console.log('Error retrieving generated prompt:', error);
+                }
+              };
+                    
               return (
                 <View key={index} style={styles.diaryEntryContainer}>
-                  <View style={styles.diaryEntry}>
+                    <TouchableOpacity style={styles.diaryEntry} onPress={handlePromptModalOpen}>
                     <View style={styles.dateEmojiContainer}>
                       <Text style={styles.diaryDate}>{formattedDate}</Text>
                       <Text>{entry.emoji}</Text>
                     </View>
                     <Text style={styles.diaryText}>{entry.message}</Text>
-                  </View>
+                  </TouchableOpacity>
                   {index !== diaryEntries.length - 1 && <View style={styles.entrySeparator} />}
                 </View>
               );
             })}
+              <Modal visible={showPrompt} animationType="fade" transparent>
+                <View style={styles.modalContainer}>
+                  <View style={styles.promptContainer}>
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setShowPrompt(false)}>
+                      <Ionicons name="close-circle" size={24} color="black" />
+                    </TouchableOpacity>
+                    <Text style={styles.brand}>StudyPals</Text>
+                    <Text style={styles.quote}>Dear {userName}. {generatedPrompt}</Text>
+                  </View>
+                </View>
+              </Modal>
+
         </View>
         )}
       </ScrollView>
@@ -391,6 +416,13 @@ const styles = StyleSheet.create({
     width: '80%',
     maxHeight: '80%',
   },
+  promptContainer: {
+    backgroundColor: '#E8FEEE',
+    borderRadius: 10,
+    padding: 20,
+    width: '80%',
+    height: '50%',
+  },
   emojiContainer: {
     flexWrap: 'wrap',
     justifyContent: 'center',
@@ -457,6 +489,19 @@ const styles = StyleSheet.create({
     height: 150,
     marginBottom: 20,
     alignSelf: 'center',
+  },
+  quote: {
+    fontSize: 20,
+    textAlign: 'center',
+    fontFamily: 'popMedium',
+    marginTop: 5,
+  },
+  brand: {
+    fontSize: 35,
+    textAlign: 'center',
+    fontFamily: 'popBold',
+    color: '#478C5C',
+    marginBottom: 25,
   }
 });
 
