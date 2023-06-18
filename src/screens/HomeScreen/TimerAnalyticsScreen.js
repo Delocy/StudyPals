@@ -24,21 +24,28 @@ const TimerAnalyticsScreen = () => {
   const calculateStreaks = (dateData) => {
     let streakCount = 0;
     let currentStreak = 1;
+    const filteredData = {};
+
+    //filter out dates with 0 hrs
+    for (const date in dateData) {
+      if (dateData[date].totalWorkDuration !== 0) {
+        filteredData[date] = dateData[date];
+      }
+    }
   
-    const sortedData = Object.keys(dateData)
+    const sortedData = Object.keys(filteredData)
       .map((date) => new Date(date))
-      .sort((a, b) => a - b);
+      .sort((a, b) => b - a);
   
     for (let i = sortedData.length - 1; i >= 0; i--) {
       const currentDate = sortedData[i];
       const previousDate = sortedData[i - 1];
-  
+    
       if (previousDate && isConsecutiveDates(currentDate, previousDate)) {
         currentStreak++;
       } else {
         streakCount = Math.max(streakCount, currentStreak);
         currentStreak = 1;
-        break;
       }
     }
     return streakCount;
@@ -49,32 +56,41 @@ const TimerAnalyticsScreen = () => {
   const isConsecutiveDates = (currentDate, previousDate) => {
     const currentDay = new Date(currentDate).getDay();
     const previousDay = new Date(previousDate).getDay();
-    // console.log(currentDate);
-    // console.log(previousDate);
-    // console.log(currentDay);
+    console.log(currentDate + ' ' + currentDay);
+    console.log(previousDate + ' ' + previousDay);
 
     return currentDay === previousDay + 1 || (previousDay === 6 && currentDay === 0);
   };
 
   const calculateLongestStreak = (dateData) => {
     let longestStreak = 0;
-    let currentStreak = 0;
+    let currentStreak = 1;
   
-    const sortedDates = Object.keys(dateData).sort();
+    const filteredData = {};
+
+    //filter out dates with 0 hrs
+    for (const date in dateData) {
+      if (dateData[date].totalWorkDuration !== 0) {
+        filteredData[date] = dateData[date];
+      }
+    }
+
+    const sortedDates = Object.keys(filteredData)
+      .map((date) => new Date(date))
+      .sort((a, b) => a - b);
   
-    sortedDates.forEach((date, index) => {
-      const currentDate = new Date(date);
-      const previousDate = index > 0 ? new Date(sortedDates[index - 1]) : null;
-  
+    console.log(sortedDates);
+    for (let i = sortedDates.length - 1; i >= 0; i--) {
+      const currentDate = sortedDates[i];
+      const previousDate = sortedDates[i - 1];
+    
       if (previousDate && isConsecutiveDates(currentDate, previousDate)) {
         currentStreak++;
-        longestStreak = streakCount;
       } else {
         longestStreak = Math.max(longestStreak, currentStreak);
         currentStreak = 1;
       }
-    });
-  
+    }
     return longestStreak;
   };
   
