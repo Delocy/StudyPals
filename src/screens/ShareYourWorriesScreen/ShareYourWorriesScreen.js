@@ -24,6 +24,8 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   const userId = auth.currentUser.uid;
   const userName = auth.currentUser.displayName;
   const [showPrompt, setShowPrompt] = useState(false);
+  const startOfDay = new Date().setHours(0, 0, 0, 0);
+  const endOfDay = new Date().setHours(23, 59, 59, 999);
 
   useEffect(() => {
     const fetchDiaryEntries = async () => {
@@ -52,9 +54,25 @@ const ShareYourWorriesScreen = ({ navigation }) => {
 
   const navigateToGeneratedPrompt = async () => { //create new screen for openai prompt
     if (!selectedEmoji) {
-      setToastMessage('Please select an emoji before proceeding');
+      setToastMessage('Please select an emoji before proceeding!');
       return;
     }
+
+    if (!message) {
+      setToastMessage('Please submit your reflection before proceeding!');
+      return;
+    }
+
+    const existingEntry = diaryEntries.find(entry => {
+      const entryTimestamp = entry.timestamp.toDate();
+      return entryTimestamp >= startOfDay && entryTimestamp <= endOfDay;
+    });
+  
+    if (existingEntry) {
+      setToastMessage('A diary entry for today already exists!');
+      return;
+    }
+
     /*try {
       const response = await fetch(process.env.GPT_LINK, {
         method: 'POST',
@@ -76,10 +94,15 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error:', error);
     }*/
-    addToDiary();
-    const quote = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
-    setGeneratedPrompt(quote);
-    navigation.navigate('GeneratedPrompt', { generatedPrompt: generatedPrompt })
+    const generatedPrompt = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
+    setGeneratedPrompt(generatedPrompt);
+    await addToDiary(generatedPrompt);
+
+    if (generatedPrompt) { //data.choice[0].text
+      navigation.navigate('GeneratedPrompt', { generatedPrompt: generatedPrompt })
+    } else {
+      setToastMessage('Failed to generate prompt. Please try again!');
+    }
   };
 
   const renderEmojiImage = () => {
@@ -96,7 +119,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     }
   };
 
-  const addToDiary = async () => {
+  const addToDiary = async (generatedPrompt) => {
     // Check if generatedPrompt is null
     if (generatedPrompt === null) {
       setToastMessage('Waiting for StudyPals response...');
@@ -114,8 +137,6 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   
     try {
       const diaryEntriesRef = firestore.collection('diaryEntries');
-      const startOfDay = new Date().setHours(0, 0, 0, 0);
-      const endOfDay = new Date().setHours(23, 59, 59, 999);
       const querySnapshot = await diaryEntriesRef
         .where('userId', '==', userId)
         .where('timestamp', '>=', firebase.firestore.Timestamp.fromDate(new Date(startOfDay)))
@@ -133,7 +154,6 @@ const ShareYourWorriesScreen = ({ navigation }) => {
         console.log('Diary entry saved to Firestore');
         setDiaryEntries([...diaryEntries, newEntry]);
       } else {
-        setToastMessage('A diary entry for today already exists!');
         console.log('A diary entry for the current user and date already exists.');
       }
     } catch (error) {
