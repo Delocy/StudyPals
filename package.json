@@ -52,7 +52,8 @@
     "react-native-svg-transformer": "^1.0.0",
     "react-native-swiper": "^1.6.0",
     "react-navigation": "^4.4.4",
-    "temp-dir": "^3.0.0"
+    "temp-dir": "^3.0.0",
+    "use-streak": "^1.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
