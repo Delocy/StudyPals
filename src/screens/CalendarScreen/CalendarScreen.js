@@ -159,7 +159,7 @@ const CalendarScreen = ({ navigation }) => {
         }));
       }
       closeModal();
-      loadTasks();
+      await loadTasks();
     } catch (error) {
       console.error('Error toggling completed status:', error);
     }
@@ -252,19 +252,19 @@ const CalendarScreen = ({ navigation }) => {
             <View style={styles.modalButtonContainer}>
               <TouchableOpacity style={[styles.modalOption, styles.editButton]} onPress={navigateToEditTaskScreen}>
                 <View style={styles.buttonContent}>
-                  <Feather name="edit" size={24} color="black" />
+                  <Feather name="edit" size={24} color="white" />
                   <Text style={styles.buttonText}>Edit</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalOption, styles.deleteButton]} onPress={handleDelete}>
                 <View style={styles.buttonContent}>
-                  <MaterialIcons name="delete-outline" size={24} color="black" />
+                  <MaterialIcons name="delete-outline" size={24} color="white" />
                   <Text style={styles.buttonText}>Delete</Text>
                 </View>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalOption, styles.completeButton]} onPress={handleComplete}>
                 <View style={styles.buttonContent}>
-                  <Ionicons name="checkbox-outline" size={24} color="black" />
+                  <Ionicons name="checkbox-outline" size={24} color="white" />
                   <Text style={styles.buttonText}>Complete</Text>
                 </View>
               </TouchableOpacity>
@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: 'black',
+    color: '#ffffff',
     fontSize: 16,
     textAlign: 'center',
     fontFamily: 'popRegular',

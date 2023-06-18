@@ -8,6 +8,8 @@ const DiaryAnalyticsScreen = () => {
   const [currentMonth, setCurrentMonth] = useState('');
   const [highestEmoji, setHighestEmoji] = useState('');
 
+  const allEmojis = ['😊', '😭', '😐', '😨'];
+
   useEffect(() => {
     const user = auth.currentUser;
     const diaryRef = firestore.collection('diaryEntries');
@@ -28,14 +30,16 @@ const DiaryAnalyticsScreen = () => {
         .where('timestamp', '<', endDate);
 
       query.get().then((snapshot) => {
-        const emojiCountsMap = {};
+        const emojiCountsMap = allEmojis.reduce((map, emoji) => {
+          map[emoji] = 0;
+          return map;
+        }, {});
 
         snapshot.forEach((doc) => {
           const emoji = doc.data().emoji;
-          emojiCountsMap[emoji] = (emojiCountsMap[emoji] || 0) + 1;
+          emojiCountsMap[emoji] += 1;
         });
 
-        // Convert the map to an array of objects
         const emojiCountsArray = Object.keys(emojiCountsMap).map((emoji) => ({
           emoji,
           count: emojiCountsMap[emoji],
@@ -43,7 +47,6 @@ const DiaryAnalyticsScreen = () => {
 
         setEmojiCounts(emojiCountsArray);
 
-        // Find the emoji with the highest count
         let maxCount = 0;
         let maxEmoji = '';
         emojiCountsArray.forEach((item) => {
