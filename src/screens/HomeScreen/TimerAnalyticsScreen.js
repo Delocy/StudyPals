@@ -59,23 +59,25 @@ const TimerAnalyticsScreen = () => {
   const calculateLongestStreak = (dateData) => {
     let longestStreak = 0;
     let currentStreak = 0;
-
+  
     const sortedDates = Object.keys(dateData).sort();
-
+  
     sortedDates.forEach((date, index) => {
       const currentDate = new Date(date);
       const previousDate = index > 0 ? new Date(sortedDates[index - 1]) : null;
-
+  
       if (previousDate && isConsecutiveDates(currentDate, previousDate)) {
         currentStreak++;
+        longestStreak = streakCount;
       } else {
         longestStreak = Math.max(longestStreak, currentStreak);
         currentStreak = 1;
       }
     });
-
+  
     return longestStreak;
   };
+  
 
   const calculateMostProductiveDay = (dateData) => {
     const focusData = [];
