@@ -338,6 +338,7 @@ const TimerAnalyticsScreen = () => {
           </Card.Content>
         </Card>
       </View>
+      
       <View style={styles.chartContainer}>
         <Swiper loop={false} showsPagination={false} onIndexChanged={handleSlideChange}>
           {focusChartData.map((weekData, index) => (
@@ -392,6 +393,7 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     flex: 5,
+    
   },
   cardTitle: {
     fontFamily: 'popBold',
@@ -425,7 +427,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#013A20',
     width: '95%',
     borderRadius: 16,
-    paddingTop: '10%',
+    paddingTop: 5,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -458,7 +460,7 @@ const styles = StyleSheet.create({
   },
   streakText: {
     fontFamily: 'popSemiBold',
-    fontSize: 30,
+    fontSize: 25,
     color: '#FFFFFF',
     marginRight: 10,
     textAlign: 'center',
