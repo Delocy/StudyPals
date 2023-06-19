@@ -331,32 +331,26 @@ const TimerAnalyticsScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.streakContainer}>
-        <Card style={styles.cardFirstContainer}>
           <Card.Content style={styles.cardContent}>
             <Text style={styles.streakText}>Current Streak: {streakCount}</Text>
             <FontAwesome5 name="fire" size={40} color="orange" style={styles.fireIcon} />
           </Card.Content>
-        </Card>
       </View>
       
       <View style={styles.chartContainer}>
         <Swiper loop={false} showsPagination={false} onIndexChanged={handleSlideChange}>
           {focusChartData.map((weekData, index) => (
             <View key={index} style={styles.contentContainerStyle}>
-              <Card style={styles.cardContainer}>
-                <Card.Content>
+              
                   <Text style={styles.cardTitle}>Focus Time</Text>
                   {renderWeekInsights()}
                   {renderChart()}
-                </Card.Content>
-              </Card>
+                
             </View>
           ))}
         </Swiper>
       </View>
       <View style={styles.bottomContainer}>
-        <Card style={styles.cardSecondContainer}>
-          <Card.Content>
             <Text style={styles.cardSecondTitle}>Overall Statistics</Text>
             <Text style={styles.cardText}>
               Total Focus Time: {hours} Hrs {minutes} Mins
@@ -372,8 +366,6 @@ const TimerAnalyticsScreen = () => {
               <Text style={[styles.cardText, { marginRight: 5 }]}>Longest Streak: {longestStreak}</Text>
               <FontAwesome5 name="fire" size={30} color="orange" />
             </View>
-          </Card.Content>
-        </Card>
       </View>
     </View>
   );
@@ -416,12 +408,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#478C5C',
+    width: '100%',
   },
   cardContainer: {
     backgroundColor: '#478C5C',
-    width: '95%',
-    borderRadius: 16,
-    marginBottom: '5%',
+    width: '100%',
   },
   cardFirstContainer: {
     backgroundColor: '#013A20',
@@ -434,8 +426,6 @@ const styles = StyleSheet.create({
   },
   cardSecondContainer: {
     backgroundColor: '#E8FEEE',
-    width: '95%',
-    borderRadius: 16,
   },
   weekInsightsContainer: {
     alignItems: 'center',
@@ -450,10 +440,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   streakContainer: {
-    alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    flex: 2,
+    alignItems: 'center',
+    flex: 1,
+    backgroundColor: '#013A20',
+    padding: '1%',
   },
   longestStreakContainer: {
     flexDirection: 'row',
@@ -464,11 +456,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginRight: 10,
     textAlign: 'center',
-    marginBottom: '4%',
   },
   bottomContainer: {
     alignItems: 'center',
     flex: 3,
+    backgroundColor: '#E8FEEE',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardContent: {
     flexDirection: 'row',
