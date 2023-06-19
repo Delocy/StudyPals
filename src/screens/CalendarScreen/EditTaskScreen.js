@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import TimePicker from 'react-native-modal-datetime-picker';
-import { initializeApp } from "firebase/app";
-import { getFirestore, updateDoc, doc, Timestamp } from "firebase/firestore";
-import { getAuth } from 'firebase/auth';
+import { updateDoc, doc, Timestamp } from "firebase/firestore";
+import { firestore, auth } from '../../../firebase.js';
 //import { getAnalytics } from "firebase/analytics";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -11,19 +10,7 @@ import { getAuth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
-  authDomain: "studypals-auth.firebaseapp.com",
-  projectId: "studypals-auth",
-  storageBucket: "studypals-auth.appspot.com",
-  messagingSenderId: "848602608150",
-  appId: "1:848602608150:web:214341bebeac9aea74fb37",
-  measurementId: "G-C13G3L9F88"
-};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
 
 const EditTaskScreen = ({ route, navigation }) => {
   const { task } = route.params;
@@ -53,7 +40,7 @@ const EditTaskScreen = ({ route, navigation }) => {
         tags: selectedTags,
       };
 
-      const db = getFirestore();
+      const db = firestore;
       await updateDoc(doc(db, 'tasks', task.id), updatedTask);
 
       navigation.goBack();

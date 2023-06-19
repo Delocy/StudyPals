@@ -3,10 +3,8 @@ import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Card } from 'react-native-paper';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Agenda } from 'react-native-calendars';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { firestore, auth } from '../../../firebase.js';
 import {
-  getFirestore,
   query,
   where,
   collection,
@@ -36,17 +34,6 @@ const theme = {
   arrowColor: '#478C5C',
 };
 
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
-  authDomain: "studypals-auth.firebaseapp.com",
-  projectId: "studypals-auth",
-  storageBucket: "studypals-auth.appspot.com",
-  messagingSenderId: "848602608150",
-  appId: "1:848602608150:web:214341bebeac9aea74fb37",
-  measurementId: "G-C13G3L9F88"
-};
-
 const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
   const [subtitle, setSubtitle] = useState('');
@@ -56,9 +43,7 @@ const CalendarScreen = ({ navigation }) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth();
+  const db = firestore;
   const user = auth.currentUser;
 
   const openModal = (task, taskId) => {
