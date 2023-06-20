@@ -6,15 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../components/Button';
 import { firestore, auth, firebase } from '../../../firebase.js';
 import Toast from '../../components/Toast';
-//import dotenv from 'dotenv';
-
-//dotenv.config(); // Call dotenv.config() to load the environment variables
+import { API_KEY, GPT_LINK } from '@env';
 
 const ShareYourWorriesScreen = ({ navigation }) => {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [message, setMessage] = useState('');
-  const apiKey = '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';
-  const gptLink = 'https://api.openai.com/v1/engines/text-davinci-002/completions'
   const [selectedEmoji, setSelectedEmoji] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [diaryEntries, setDiaryEntries] = useState([]); // State variable for diary entries
@@ -42,8 +38,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
         console.error('Error fetching diary entries from Firestore:', error);
         setLoading(false);
       }
-    };
-  
+    };  
     fetchDiaryEntries();
   }, []);
 
@@ -53,6 +48,10 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   };
 
   const navigateToGeneratedPrompt = async () => { //create new screen for openai prompt
+    if (!selectedEmoji && !message) {
+      setToastMessage('Please select an emoji and message before proceeding!');
+    }
+
     if (!selectedEmoji) {
       setToastMessage('Please select an emoji before proceeding!');
       return;
@@ -73,36 +72,42 @@ const ShareYourWorriesScreen = ({ navigation }) => {
       return;
     }
 
-    /*try {
-      const response = await fetch(process.env.GPT_LINK, {
+    try {
+      const response = await fetch(GPT_LINK, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.API_KEY}`, // Use the environment variables
+          'Authorization': `Bearer ${API_KEY}`, // Use the environment variables
         },
         body: JSON.stringify({
-          prompt: message + 'please give me a short encouragement message to make my day. use humanlike and personal voice',
-          max_tokens: 40,
+          prompt: message + ' give me an encouragement message to make my day.',
+          max_tokens: 50,
         }),
       });
 
       const data = await response.json();
-      console.log("#####");
-      console.log(data);
-      setGeneratedPrompt(data.choices[0].text);
-      addToDiary(); // Add the diary entry when the user presses the button
+      console.log('API Response:', data);
+      console.log("#####DATA CHOICES");
+      await setGeneratedPrompt(data.choices[0].text);
+      console.log(data.choices[0].text);
+      console.log("#########GENERATED PROMPT");
+      console.log(generatedPrompt)
+
+      await addToDiary(data.choices[0].text); // Add the diary entry when the user presses the button
+
+      if (data.choices[0].text) { //data.choice[0].text
+        navigation.navigate('GeneratedPrompt', { generatedPrompt: data.choices[0].text })
+      } else {
+        setToastMessage('Failed to generate prompt. Please try again!');
+      }
+
     } catch (error) {
       console.error('Error:', error);
-    }*/
-    const generatedPrompt = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
-    setGeneratedPrompt(generatedPrompt);
-    await addToDiary(generatedPrompt);
-
-    if (generatedPrompt) { //data.choice[0].text
-      navigation.navigate('GeneratedPrompt', { generatedPrompt: generatedPrompt })
-    } else {
-      setToastMessage('Failed to generate prompt. Please try again!');
     }
+    //const generatedPrompt = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
+    //setGeneratedPrompt(generatedPrompt);
+    //await addToDiary(generatedPrompt);
+
   };
 
   const renderEmojiImage = () => {
@@ -162,6 +167,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   
     setMessage(''); // Clear the message input after adding to the diary
     setSelectedEmoji(''); // Clear the selected emoji after adding to the diary
+    setGeneratedPrompt(''); // Clear the selected prompt after adding to the diary
   };
 
   const renderEmptyDiary = () => {
