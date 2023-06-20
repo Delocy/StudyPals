@@ -144,13 +144,11 @@ const CalendarScreen = ({ navigation }) => {
         }));
       }
       closeModal();
-      await loadTasks();
+      setItems(loadTasks());
     } catch (error) {
       console.error('Error toggling completed status:', error);
     }
   };
-  
-  
   
   const renderItem = (item) => {
     const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
@@ -187,10 +185,21 @@ const CalendarScreen = ({ navigation }) => {
   const renderEmptyDate = () => {
     return (
       <View style={styles.emptyDate}>
+        <Ionicons name="calendar" size={40} color="#478C5C" />
         <Text style={styles.emptyDateText}>No tasks for this date</Text>
       </View>
     );
   };
+
+  const rowHasChanged = (r1, r2) => {
+    return (
+      r1.name !== r2.name ||
+      r1.description !== r2.description ||
+      r1.startTime !== r2.startTime ||
+      r1.endTime !== r2.endTime
+    );
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -206,14 +215,13 @@ const CalendarScreen = ({ navigation }) => {
         selected={timeToString(Date.now())}
         renderItem={renderItem}
         renderEmptyData={renderEmptyDate}
+        rowHasChanged={rowHasChanged}
         renderDay={(day, item) => {
           return <View/>;
         }}
         onDayPress={(date) => {
           const selectedDateString = date.dateString;
           setSelectedDate(selectedDateString);
-          setItems({}); // Clear the items state
-          setMarkedDates({}); // Clear the markedDates state
           const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
           setSubtitle(selectedMonth);
         }}         
@@ -342,7 +350,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     marginBottom: 8,
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'popRegular',
   },
   cardTextDescription: {
@@ -378,8 +386,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#F9FAFD',
     borderRadius: 15,
-    elevation: 2,
-    marginBottom: 20,
   },
   modalContainer: {
     flex: 1,
