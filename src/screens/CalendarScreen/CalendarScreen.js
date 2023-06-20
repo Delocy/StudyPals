@@ -3,10 +3,8 @@ import { Text, Modal, View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Card } from 'react-native-paper';
 import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { Agenda } from 'react-native-calendars';
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { firestore, auth } from '../../../firebase.js';
 import {
-  getFirestore,
   query,
   where,
   collection,
@@ -17,7 +15,6 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import Tag from './TagColors';
-
 
 const timeToString = (time) => {
   const date = new Date(time);
@@ -36,17 +33,6 @@ const theme = {
   arrowColor: '#478C5C',
 };
 
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
-  authDomain: "studypals-auth.firebaseapp.com",
-  projectId: "studypals-auth",
-  storageBucket: "studypals-auth.appspot.com",
-  messagingSenderId: "848602608150",
-  appId: "1:848602608150:web:214341bebeac9aea74fb37",
-  measurementId: "G-C13G3L9F88"
-};
-
 const CalendarScreen = ({ navigation }) => {
   const [items, setItems] = useState({});
   const [subtitle, setSubtitle] = useState('');
@@ -56,9 +42,7 @@ const CalendarScreen = ({ navigation }) => {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth();
+  const db = firestore;
   const user = auth.currentUser;
 
   const openModal = (task, taskId) => {
@@ -159,13 +143,11 @@ const CalendarScreen = ({ navigation }) => {
         }));
       }
       closeModal();
-      loadTasks();
+      setItems(loadTasks());
     } catch (error) {
       console.error('Error toggling completed status:', error);
     }
   };
-  
-  
   
   const renderItem = (item) => {
     const startTime = new Date(item.startTime.seconds * 1000); // Convert timestamp to Date object
@@ -202,10 +184,21 @@ const CalendarScreen = ({ navigation }) => {
   const renderEmptyDate = () => {
     return (
       <View style={styles.emptyDate}>
+        <Ionicons name="calendar" size={40} color="#478C5C" />
         <Text style={styles.emptyDateText}>No tasks for this date</Text>
       </View>
     );
   };
+
+  const rowHasChanged = (r1, r2) => {
+    return (
+      r1.name !== r2.name ||
+      r1.description !== r2.description ||
+      r1.startTime !== r2.startTime ||
+      r1.endTime !== r2.endTime
+    );
+  };
+  
 
   return (
     <View style={styles.container}>
@@ -221,14 +214,13 @@ const CalendarScreen = ({ navigation }) => {
         selected={timeToString(Date.now())}
         renderItem={renderItem}
         renderEmptyData={renderEmptyDate}
+        rowHasChanged={rowHasChanged}
         renderDay={(day, item) => {
           return <View/>;
         }}
         onDayPress={(date) => {
           const selectedDateString = date.dateString;
           setSelectedDate(selectedDateString);
-          setItems({}); // Clear the items state
-          setMarkedDates({}); // Clear the markedDates state
           const selectedMonth = new Date(date.year, date.month - 1).toLocaleString('default', { month: 'long' });
           setSubtitle(selectedMonth);
         }}         
@@ -357,7 +349,7 @@ const styles = StyleSheet.create({
   },
   cardText: {
     marginBottom: 8,
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'popRegular',
   },
   cardTextDescription: {
@@ -378,10 +370,6 @@ const styles = StyleSheet.create({
     marginRight: 4,
     marginBottom: 4,
   },
-  deleteButton: {
-    color: 'red',
-    fontSize: 16,
-  },
   emptyDate: {
     height: 15,
     flex: 1,
@@ -397,8 +385,6 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#F9FAFD',
     borderRadius: 15,
-    elevation: 2,
-    marginBottom: 20,
   },
   modalContainer: {
     flex: 1,
@@ -434,7 +420,7 @@ const styles = StyleSheet.create({
   editButton: {
     flex: 1,
     marginRight: 10,
-    backgroundColor: 'blue',
+    backgroundColor: '#99C3EC',
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',
@@ -442,7 +428,7 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     flex: 1,
-    backgroundColor: 'red',
+    backgroundColor: '#F69C9E',
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',
@@ -451,7 +437,7 @@ const styles = StyleSheet.create({
   completeButton: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: '#478C5C', // Set the background color to blue
+    backgroundColor: '#97E3C2', 
     paddingVertical: 10,
     borderRadius: 8,
     justifyContent: 'center',

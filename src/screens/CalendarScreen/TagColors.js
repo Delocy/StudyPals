@@ -5,7 +5,7 @@ const Tag = ({ text }) => {
   let color, textColor;
 
   switch (text.toLowerCase()) {
-    case 'office':
+    case 'school':
       color = '#ECEAFF';
       textColor = '#8F81FE';
       break;
