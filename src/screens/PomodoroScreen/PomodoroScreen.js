@@ -25,6 +25,7 @@ const PomodoroScreen = () => {
   const navigation = useNavigation();
   const userId = auth.currentUser.uid;
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const [sessionCount, setSessionCount] = useState(1);
 
   useEffect(() => {
     const createUserEntry = async () => {
@@ -89,9 +90,11 @@ const PomodoroScreen = () => {
           setActive(false);
           setCount(workDuration * 60);
           setNumFocusSessions(modifiedNumFocusSessions); // Reset the number of sessions
+          setSessionCount(1)
         } else {
           setCount(workDuration * 60);
           setNumFocusSessions((prevNumSessions) => prevNumSessions - 1);
+          setSessionCount(sessionCount + 1)
         }
       } else {
         setBreakTime(true);
@@ -124,6 +127,7 @@ const PomodoroScreen = () => {
     setCount(workDuration * 60);
     setBreakTime(false);
     setTintColor("#F6FFDE");
+    setSessionCount(1);
   };
 
   const handleEdit = () => {
@@ -142,6 +146,7 @@ const PomodoroScreen = () => {
     setCount(newWorkDuration * 60);
     setActive(false);
     setBreakTime(false);
+    setSessionCount(1);
   };
 
   const handleCancelEdit = () => {
@@ -166,12 +171,14 @@ const PomodoroScreen = () => {
 
   return (
     <View style={styles.container}>
-      {active && breakTime && (
-        <>
-        <Header>It's Break Time!</Header>
-        <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
-        </>
-      )}
+      <View style={styles.headerContainer}>
+        {breakTime && (
+          <>
+          <Text style={styles.headerText}>It's Break Time!</Text>
+          <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
+          </>
+        )}
+      </View>
 
       <View style={styles.circle}>
         <AnimatedCircularProgress
@@ -181,9 +188,14 @@ const PomodoroScreen = () => {
           tintColor={tintColor}
         >
           {() => (
-            <Text style={styles.timerText}>
-              {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
-            </Text>
+            <>
+              <Text style={styles.timerText}>
+                {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
+              </Text>
+              <Text style={breakTime ? styles.sessionBreakText : styles.sessionText}>
+                Session {sessionCount}/{modifiedNumFocusSessions}
+              </Text>
+            </>
           )}
         </AnimatedCircularProgress>
       </View>
@@ -219,9 +231,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: '#F6FFDE',
   },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 36,
+    color: '#478C5C',
+    fontFamily: 'popBold',
+  },
   text: {
-    marginTop: -16,
-    marginBottom: 30,
     fontFamily: 'popRegular',
     color: '#000',
   },
@@ -230,6 +249,16 @@ const styles = StyleSheet.create({
     fontFamily: 'popMedium',
     textAlign: "center",
     color: "#F6FFDE"
+  },
+  sessionText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#E3F2C1',
+  },
+  sessionBreakText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#fff',
   },
   circle: {
     backgroundColor: '#478C5C',
@@ -248,7 +277,7 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "space-evenly",
     alignItems: "center",
-    marginTop: 40,
+    marginTop: '10%',
     borderRadius: 240,
     backgroundColor: "#478C5C",
     width: 50,
