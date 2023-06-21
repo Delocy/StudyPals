@@ -385,7 +385,9 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     flex: 5,
-    
+    margin: 15,
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   cardTitle: {
     fontFamily: 'popBold',
@@ -446,6 +448,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#013A20',
     padding: '1%',
+    borderRadius: 20,
+    marginTop: 15,
+    marginLeft: 15,
+    marginRight: 15,
   },
   longestStreakContainer: {
     flexDirection: 'row',
@@ -463,6 +469,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8FEEE',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 15,
+    marginRight: 15,
+    marginLeft: 15,
+    borderRadius: 40,
   },
   cardContent: {
     flexDirection: 'row',
