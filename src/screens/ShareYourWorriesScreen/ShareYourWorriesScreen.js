@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8FEEE',
     borderRadius: 10,
     padding: 20,
-    width: '80%',
-    height: '50%',
+    width: '90%',
+    height: '55%',
   },
   emojiContainer: {
     flexWrap: 'wrap',

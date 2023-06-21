@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
     fontFamily: 'popBold',
     color: '#478C5C',
     marginTop: 10,
-    marginBottom: 30,
   },
   quote: {
     fontSize: 22,
