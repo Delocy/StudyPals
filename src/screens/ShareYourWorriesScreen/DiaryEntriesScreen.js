@@ -1,20 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { auth } from '../../../firebase.js';
 
 const DiaryEntriesScreen = ({ route }) => {
   const { diaryEntries } = route.params;
   const [entries, setEntries] = useState([]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth().toString());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());  
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('default', { month: 'long' }));
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const [isMonthModalVisible, setMonthModalVisible] = useState(false);
+  const [isYearModalVisible, setYearModalVisible] = useState(false);
+  const userName = auth.currentUser.displayName;
   
   useEffect(() => {
     let filteredEntries = diaryEntries[0];
     if (selectedMonth !== '' && selectedYear !== '') {
-      const month = parseInt(selectedMonth, 10);
+      const month = selectedMonth;
       const year = parseInt(selectedYear, 10);
       filteredEntries = diaryEntries[0].filter((entry) => {
-        const entryMonth = entry.timestamp.toDate().getMonth();
+        const entryMonth = entry.timestamp.toDate().toLocaleString('default', { month: 'long' });
         const entryYear = entry.timestamp.toDate().getFullYear();
         return entryMonth === month && entryYear === year;
       });
@@ -24,6 +27,42 @@ const DiaryEntriesScreen = ({ route }) => {
     );
     setEntries(sortedEntries);
   }, [diaryEntries, selectedMonth, selectedYear]);
+
+  const calculateInsights = () => {
+    const entries = diaryEntries[0];
+    const totalEntries = entries.length;
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let streakCounter = 0;
+  
+    const currentDate = new Date().setHours(0, 0, 0, 0);
+  
+    for (let i = totalEntries - 1; i >= 0; i--) {
+      const entryDate = entries[i].timestamp.toDate().setHours(0, 0, 0, 0);
+      const timeDiff = Math.abs(currentDate - entryDate);
+      const diffDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+  
+      if (diffDays === 0 || (diffDays === 1 && streakCounter > 0)) {
+        // If entry is from today or within 1 day of the previous entry, increase streak counter
+        streakCounter += 1;
+        currentStreak = streakCounter;
+      } else {
+        // If entry is not from today or not within 1 day of the previous entry, reset streak counter
+        streakCounter = 0;
+      }
+  
+      // Update longest streak
+      if (streakCounter > longestStreak) {
+        longestStreak = streakCounter;
+      }
+    }
+  
+    return { totalEntries, currentStreak, longestStreak };
+  };
+  
+  
+  
+  const insights = calculateInsights();
 
   // Render each diary entry in the FlatList
   const renderItem = ({ item }) => {
@@ -40,41 +79,128 @@ const DiaryEntriesScreen = ({ route }) => {
           <Text style={styles.diaryDate}>{formattedDate}</Text>
           <Text>{item.emoji}</Text>
         </View>
-        <Text style={styles.diaryText}>{item.message}</Text>
+        <Text style={styles.diaryText}>{userName}: {item.message}</Text>
+        <Text></Text>
+        <Text style={styles.responseText}>StudyPals: {item.generatedPrompt.trimStart()}</Text>
       </View>
+    );
+  };
+
+  const toggleMonthModal = () => {
+    setMonthModalVisible(!isMonthModalVisible);
+  };
+
+  const toggleYearModal = () => {
+    setYearModalVisible(!isYearModalVisible);
+  };
+
+  const handleMonthSelection = (month) => {
+    setSelectedMonth(month);
+    setMonthModalVisible(false);
+  };
+
+  const handleYearSelection = (year) => {
+    setSelectedYear(year);
+    setYearModalVisible(false);
+  };
+
+  const renderMonthDropdown = () => {
+    return (
+      <Modal
+        visible={isMonthModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={toggleMonthModal}
+      >
+        <View style={styles.dropdownContainer}>
+        <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("January")}>
+            <Text style={styles.month}>January</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("February")}>
+            <Text style={styles.month}>February</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("March")}>
+            <Text style={styles.month}>March</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("April")}>
+            <Text style={styles.month}>April</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("May")}>
+            <Text style={styles.month}>May</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("June")}>
+            <Text style={styles.month}>June</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("July")}>
+            <Text style={styles.month}>July</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("August")}>
+            <Text style={styles.month}>August</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("September")}>
+            <Text style={styles.month}>September</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("October")}>
+            <Text style={styles.month}>October</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("November")}>
+            <Text style={styles.month}>November</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleMonthSelection("December")}>
+            <Text style={styles.month}>December</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  };
+
+  const renderYearDropdown = () => {
+    return (
+      <Modal
+        visible={isYearModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={toggleYearModal}
+      >
+        <View style={styles.dropdownContainer}>
+          <TouchableOpacity style={styles.dropdownOption} onPress={() => handleYearSelection("2023")}>
+            <Text>2023</Text>
+          </TouchableOpacity>
+          {/* Render other year options */}
+        </View>
+      </Modal>
     );
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.filterContainer}>
-        <Picker
-          style={styles.picker}
-          selectedValue={selectedMonth}
-          onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-        >
-          <Picker.Item label="January" value="0" />
-          <Picker.Item label="February" value="1" />
-          <Picker.Item label="March" value="2" />
-          <Picker.Item label="April" value="3" />
-          <Picker.Item label="May" value="4" />
-          <Picker.Item label="June" value="5" />
-          <Picker.Item label="July" value="6" />
-          <Picker.Item label="August" value="7" />
-          <Picker.Item label="September" value="8" />
-          <Picker.Item label="October" value="9" />
-          <Picker.Item label="November" value="10" />
-          <Picker.Item label="December" value="11" />
-        </Picker>
-        <Picker
-          style={styles.picker}
-          selectedValue={selectedYear}
-          onValueChange={(itemValue) => setSelectedYear(itemValue)}
-        >
-          <Picker.Item label="2023" value="2023" />
-          {/* Add more years if needed */}
-        </Picker>
+      <View style={styles.cardContainer}>
+        <Text style={styles.cardTitle}>Insights</Text>
+        <View style={styles.insightsContainer}>
+          <View style={styles.insightCard}>
+            <Text style={styles.insightValue}>{insights.currentStreak}</Text>
+            <Text style={styles.insightTitle}>CURRENT STREAK</Text>
+          </View>
+          <View style={styles.insightCard}>
+            <Text style={styles.insightValue}>{insights.longestStreak}</Text>
+            <Text style={styles.insightTitle}>LONGEST STREAK</Text>
+          </View>
+          <View style={styles.insightCard}>
+            <Text style={styles.insightValue}>{insights.totalEntries}</Text>
+            <Text style={styles.insightTitle}>TOTAL ENTRIES</Text>
+          </View>
+        </View>
       </View>
+      <View style={styles.filterContainer}>
+        <TouchableOpacity style={styles.dropdownButton} onPress={toggleMonthModal}>
+          <Text style={styles.displayedFilter}>{selectedMonth}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.dropdownButton} onPress={toggleYearModal}>
+          <Text style={styles.displayedFilter}>{selectedYear}</Text>
+        </TouchableOpacity>
+      </View>
+      {renderMonthDropdown()}
+      {renderYearDropdown()}
       <FlatList
         data={entries.reverse()}
         keyExtractor={(item, index) => index.toString()}
@@ -91,16 +217,31 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
-    backgroundColor: '#F6FFDE',
+    backgroundColor: '#AAC8A7',
   },
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: '3%',
   },
-  picker: {
+  dropdownButton: {
     flex: 1,
-    marginRight: 8,
+    marginRight: '1.8%',
+    paddingVertical: '3%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: '3%',
+  },
+  dropdownContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#AAC8A7',
+  },
+  dropdownOption: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
   },
   flatList: {
     flex: 1,
@@ -121,13 +262,63 @@ const styles = StyleSheet.create({
     marginRight: 8,
     fontSize: 15,
     fontFamily: 'popSemiBold',
-    color: '#478C5C',
+    color: '#000',
+  },
+  month: {
+    fontSize: 16,
+    fontFamily: 'popRegular',
+    color: '#fff',
   },
   diaryText: {
-    fontSize: 13,
-    color: '#000',
+    fontSize: 15,
+    color: '#454545',
     fontFamily: 'popMedium',
   },
+  responseText: {
+    fontSize: 15,
+    color: '#478C5C',
+    fontFamily: 'popMedium'
+  },
+  insightsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    backgroundColor: '#F2FDF5',
+    borderRadius: 10,
+  },
+  insightCard: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  insightTitle: {
+    fontSize: 15,
+    fontFamily: 'popMedium',
+    color: '#478C5C',
+    textAlign: 'center',
+  },
+  insightValue: {
+    fontSize: 22,
+    fontFamily: 'popSemiBold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  cardContainer: {
+    backgroundColor: '#F6FFDE',
+    borderRadius: 10,
+    padding: 16,
+    marginTop: '5%',
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontFamily: 'popSemiBold',
+    marginBottom: 10,
+    color: '#000',
+  },
+  displayedFilter: {
+    fontFamily: 'popRegular',
+    fontSize: 12,
+  }
 });
 
 export default DiaryEntriesScreen;
