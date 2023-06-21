@@ -80,8 +80,8 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           'Authorization': `Bearer ${API_KEY}`, // Use the environment variables
         },
         body: JSON.stringify({
-          prompt: message + ' give me an encouragement message to make my day.',
-          max_tokens: 50,
+          prompt: message + ' give me a short encouragement message to make my day, use a human voice',
+          max_tokens: 60,
         }),
       });
 
