@@ -99,29 +99,31 @@ const DiaryAnalyticsScreen = () => {
         </View>
 
         <View style={styles.chartContainer}>
-          <BarChart
-            data={chartData}
-            barWidth={20}
-            initialSpacing={45}
-            spacing={42}
-            barBorderRadius={4}
-            yAxisThickness={0}
-            frontColor={'#75CE9F'}
-            xAxisType={'dashed'}
-            xAxisColor={'lightgray'}
-            yAxisTextStyle={{ color: 'lightgray' }}
-            noOfSections={6}
-            labelWidth={12}
-            showLine
-            lineConfig={{
-              color: '#FFC06E',
-              thickness: 3,
-              curved: true,
-              hideDataPoints: true,
-              shiftY: 20,
-              initialSpacing: 50,
-            }}
-          />
+        {chartData.length > 0 && (
+        <BarChart
+          data={chartData}
+          barWidth={20}
+          initialSpacing={45}
+          spacing={42}
+          barBorderRadius={4}
+          yAxisThickness={0}
+          frontColor={'#75CE9F'}
+          xAxisType={'dashed'}
+          xAxisColor={'lightgray'}
+          yAxisTextStyle={{ color: 'lightgray' }}
+          noOfSections={6}
+          labelWidth={12}
+          // showLine
+          // lineConfig={{
+          //   color: '#FFC06E',
+          //   thickness: 3,
+          //   curved: true,
+          //   hideDataPoints: true,
+          //   shiftY: 20,
+          //   initialSpacing: 50,
+          // }}
+        />
+      )}
         </View>
       </View>
 
@@ -130,9 +132,9 @@ const DiaryAnalyticsScreen = () => {
           <View key={item.emoji} style={styles.emojiItem}>
             <Text style={styles.emoji}>{item.emoji}</Text>
             <Text style={styles.count}>{item.count}</Text>
-            <Text style={styles.additionalInfo}>Average Rating: {item.averageRating}</Text>
+            <Text style={styles.additionalInfo}>Occurrence Rate: {item.averageRating}</Text>
             <Text style={styles.percentage}>
-              {((item.count / totalReflectionsCount) * 100).toFixed(2)}%
+              {totalReflectionsCount === 0 ? '0%' : ((item.count / totalReflectionsCount) * 100).toFixed(2) + '%'}
             </Text>
           </View>
         ))}
