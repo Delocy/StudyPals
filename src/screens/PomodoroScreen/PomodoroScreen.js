@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import EditScreen from "./EditScreen";
 import Header from "../../components/Header";
+import { firestore, auth, firebase } from '../../../firebase.js';
 
 const INITIAL_WORK_DURATION = 25; // in minutes
 const INITIAL_SHORT_BREAK_DURATION = 5; // in minutes
@@ -21,10 +22,46 @@ const PomodoroScreen = () => {
   const [breakTime, setBreakTime] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [tintColor, setTintColor] = useState("#F6FFDE"); // Add state for tint color
-
   const navigation = useNavigation();
+  const userId = auth.currentUser.uid;
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const [sessionCount, setSessionCount] = useState(1);
 
   useEffect(() => {
+    const createUserEntry = async () => {
+      try {
+        const userId = auth.currentUser.uid;
+        const userDoc = await firestore.collection('pomodoro').doc(userId).get();
+
+          if (!userDoc.exists) {
+            // User document doesn't exist, create a new entry
+            await firestore.collection('pomodoro').doc(userId).set({
+              [currentDate]: {
+                totalWorkDuration: 0,
+                totalBreakDuration: 0,
+              },
+            });
+          } else {
+            const userData = userDoc.data();
+
+            if (!userData[currentDate]) {
+              // User document exists, but current date doesn't have an entry
+              await firestore.collection('pomodoro').doc(userId).update({
+                [`${currentDate}`]: {
+                  totalWorkDuration: 0,
+                  totalBreakDuration: 0,
+                },
+              });
+            }
+          }
+        } catch (error) {
+          // Handle error while creating/updating the user entry
+          console.log('Error creating/updating user entry:', error);
+        }
+      };
+
+    createUserEntry();
+
     let interval = null;
   
     if (active && count > 0) {
@@ -41,19 +78,35 @@ const PomodoroScreen = () => {
       if (breakTime) {
         setBreakTime(false);
         setTintColor("#F6FFDE");
+
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalBreakDuration`]: firebase.firestore.FieldValue.increment(shortBreakDuration),
+          },
+          { merge: true }
+        )    
   
         if (numFocusSessions === 1) {
           setActive(false);
           setCount(workDuration * 60);
           setNumFocusSessions(modifiedNumFocusSessions); // Reset the number of sessions
+          setSessionCount(1)
         } else {
           setCount(workDuration * 60);
           setNumFocusSessions((prevNumSessions) => prevNumSessions - 1);
+          setSessionCount(sessionCount + 1)
         }
       } else {
         setBreakTime(true);
         setTintColor("#fff");
         setCount(shortBreakDuration * 60);
+
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalWorkDuration`]: firebase.firestore.FieldValue.increment(workDuration),
+          },
+          { merge: true }
+        );
       }
     }
   
@@ -72,9 +125,9 @@ const PomodoroScreen = () => {
   const handleReset = () => {
     setActive(false);
     setCount(workDuration * 60);
-    setNumFocusSessions(modifiedNumFocusSessions);
     setBreakTime(false);
     setTintColor("#F6FFDE");
+    setSessionCount(1);
   };
 
   const handleEdit = () => {
@@ -93,6 +146,7 @@ const PomodoroScreen = () => {
     setCount(newWorkDuration * 60);
     setActive(false);
     setBreakTime(false);
+    setSessionCount(1);
   };
 
   const handleCancelEdit = () => {
@@ -110,31 +164,38 @@ const PomodoroScreen = () => {
         onCancel={handleCancelEdit}
         workDuration={workDuration}
         shortBreakDuration={shortBreakDuration}
-        numFocusSessions={numFocusSessions}
+        numFocusSessions={modifiedNumFocusSessions}
       />
     );
   }
 
   return (
     <View style={styles.container}>
-      {active && breakTime && (
-        <>
-        <Header>It's Break Time!</Header>
-        <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
-        </>
-      )}
+      <View style={styles.headerContainer}>
+        {breakTime && (
+          <>
+          <Text style={styles.headerText}>It's Break Time!</Text>
+          <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
+          </>
+        )}
+      </View>
 
       <View style={styles.circle}>
         <AnimatedCircularProgress
           size={250}
           width={11}
-          fill={(count * 100) / (workDuration * 60)}
+          fill={breakTime ? 100 : (count * 100) / (workDuration * 60)}
           tintColor={tintColor}
         >
           {() => (
-            <Text style={styles.timerText}>
-              {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
-            </Text>
+            <>
+              <Text style={styles.timerText}>
+                {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
+              </Text>
+              <Text style={breakTime ? styles.sessionBreakText : styles.sessionText}>
+                Session {sessionCount}/{modifiedNumFocusSessions}
+              </Text>
+            </>
           )}
         </AnimatedCircularProgress>
       </View>
@@ -170,9 +231,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: '#F6FFDE',
   },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 36,
+    color: '#478C5C',
+    fontFamily: 'popBold',
+  },
   text: {
-    marginTop: -16,
-    marginBottom: 30,
     fontFamily: 'popRegular',
     color: '#000',
   },
@@ -181,6 +249,16 @@ const styles = StyleSheet.create({
     fontFamily: 'popMedium',
     textAlign: "center",
     color: "#F6FFDE"
+  },
+  sessionText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#E3F2C1',
+  },
+  sessionBreakText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#fff',
   },
   circle: {
     backgroundColor: '#478C5C',
@@ -199,7 +277,7 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "space-evenly",
     alignItems: "center",
-    marginTop: 40,
+    marginTop: '10%',
     borderRadius: 240,
     backgroundColor: "#478C5C",
     width: 50,

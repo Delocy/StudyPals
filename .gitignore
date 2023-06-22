@@ -61,3 +61,6 @@ dist/
 
 # @end expo-cli
 node_modules
+
+# env
+.env

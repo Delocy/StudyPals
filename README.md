@@ -31,14 +31,21 @@
 - Includes reminders in the form of notifications for urgent tasks
 
 ### Self Care Section
-- “Share my Worries” - users can post a reflection then output motivational Quotes based on user response using Artificial Intelligence.
+- “Share my Worries” - users can post a reflection then output motivational Quotes based on user response using Artificial Intelligence
 - The diary log will be laid out in a list stack view.
 
 ### Pomodoro Timer
-- Different timers range of configuration: 5-60 mins work, 1-30 mins short break, 5-60 mins long break and 2-15 sessions. 
+- Different timers range of configuration: 5-60 mins work, 1-30 mins short break, 5-60 mins long break and 2-15 sessions.
 - Calm music selection to choose from which can aid user concentration
 
 ### Productivity Tracker
-- Chart of how many tasks the user have completed on time and number of hours the user stayed concentrated
+- Timer Trend
+- Tasks users have left/completed on time
+- Mood Trend
 
+### Meditation
+- Choose a session: 10 min or 20 mins
+- Receive meditation guides
 
+### Resources
+- Filter by category and read up on how to cope with negative or uncomfortable situations.
