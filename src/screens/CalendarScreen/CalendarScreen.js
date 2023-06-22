@@ -16,7 +16,6 @@ import {
 } from 'firebase/firestore';
 import Tag from './TagColors';
 
-
 const timeToString = (time) => {
   const date = new Date(time);
   return date.toISOString().split('T')[0];
@@ -98,16 +97,24 @@ const CalendarScreen = ({ navigation }) => {
             (a, b) => a.startTime.seconds - b.startTime.seconds
           );
         });
-  
-        setItems(sortedItems); // Update the state with the sorted items
-        setMarkedDates(formattedMarkedDates); // Update the state with the formatted marked dates
+        setItems(sortedItems);
+        setMarkedDates(formattedMarkedDates);
       });
   
       return unsubscribe; // Return the unsubscribe function to clean up the subscription
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
-  };    
+  };
+  
+  //hard coding the render for other task
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setItems(loadTasks);
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const navigateToAddTaskScreen = () => {
     navigation.navigate('AddTask', { date: selectedDate });
