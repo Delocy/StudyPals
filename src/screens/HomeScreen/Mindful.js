@@ -25,12 +25,12 @@ const MeditationScreen = () => {
   }, [isRunning]);
 
   useEffect(() => {
-    async function loadAudio() {
+    const loadAudio = async () => {
       const { sound } = await Audio.Sound.createAsync(
         require('./Audio/rain.mp3')
       );
       setSound(sound);
-    }
+    };
 
     loadAudio();
 
@@ -69,8 +69,6 @@ const MeditationScreen = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  const progress = (timer / (selectedDuration * 60)) * 100;
-
   const playAudio = async () => {
     if (sound && !isMuted) {
       await sound.playAsync();
@@ -93,24 +91,24 @@ const MeditationScreen = () => {
   };
 
   const toggleMute = () => {
-    setIsMuted((prevMuted) => !prevMuted);
-    if (isPlaying) {
-      if (isMuted) {
-        playAudio();
-      } else {
-        pauseAudio();
-      }
+  setIsMuted((prevMuted) => !prevMuted);
+  if (isPlaying && sound) {
+    if (isMuted) {
+      sound.setVolumeAsync(1.0);
+    } else {
+      sound.setVolumeAsync(0.0);
     }
-  };
+  }
+};
 
   return (
     <View style={styles.container}>
       <View style={styles.timerContainer}>
         <Image source={require('./Images/rainforest.png')} style={styles.image} />
         <TouchableOpacity style={styles.button} onPress={toggleDuration}>
-            <Text style={styles.buttonText}>
-              {selectedDuration === 10 ? 'Switch to 20 mins' : 'Switch to 10 mins'}
-            </Text>
+          <Text style={styles.buttonText}>
+            {selectedDuration === 10 ? 'Switch to 20 mins' : 'Switch to 10 mins'}
+          </Text>
         </TouchableOpacity>
         <View style={styles.buttons}>
           <TouchableOpacity style={styles.button} onPress={resetTimer}>
@@ -142,10 +140,11 @@ const MeditationScreen = () => {
           value={timer}
           minimumTrackTintColor="#478C5C"
           maximumTrackTintColor="lightgrey"
-          thumbTintColor="#478C5C"
+          thumbTintColor="transparent"
+          disabled={true}
         />
         <View style={styles.startEnd}>
-          <View style={{ flex: 1, alignItems: 'flex-start', marginLeft: 27, }}>
+          <View style={{ flex: 1, alignItems: 'flex-start', marginLeft: 27 }}>
             <Text style={styles.timerText}>{formatTime(timer)}</Text>
           </View>
           <View style={{ flex: 1, alignItems: 'flex-end', marginRight: 27 }}>
@@ -246,7 +245,7 @@ const styles = StyleSheet.create({
     fontFamily: 'popRegular',
   },
   slider: {
-    width: 370,
+    width: 350,
     height: 40,
   },
   buttons: {
