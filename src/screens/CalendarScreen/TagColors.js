@@ -22,7 +22,7 @@ const Tag = ({ text }) => {
       textColor = '#1EC1C3'; // You can set the desired color for 'personal'
       break;
     default:
-      color = '#000000';
+      color = '#779ECB';
       textColor = '#FFFFFF';
       break;
   }
