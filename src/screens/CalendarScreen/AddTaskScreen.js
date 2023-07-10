@@ -12,6 +12,7 @@ const AddTaskScreen = ({ route, navigation }) => {
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [customTag, setCustomTag] = useState('');
   const availableTags = [
     { name: 'School', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
     { name: 'Home', color: '#FFEFEB', selectedColor: '#F0A58E', textColor: '#F0A58E', selectedTextColor: '#FFFFFF' },
@@ -97,17 +98,33 @@ const AddTaskScreen = ({ route, navigation }) => {
     }
   };
   
+  
   const isTagSelected = (tag) => {
     return selectedTags.includes(tag);
   };
 
   const getTagTextColor = (tag) => {
-    return isTagSelected(tag) ? '#FFFFFF' : availableTags.find((t) => t.name === tag).textColor;
-  };  
-
-  const getTagBackgroundColor = (tag) => {
-    return isTagSelected(tag) ? availableTags.find((t) => t.name === tag).selectedColor : availableTags.find((t) => t.name === tag).color;
+    if (isTagSelected(tag)) {
+      return '#FFFFFF';
+    } else if (availableTags.some((t) => t.name === tag)) {
+      return availableTags.find((t) => t.name === tag).textColor;
+    } else {
+      return '#000000';
+    }
   };
+  
+  const getTagBackgroundColor = (tag) => {
+    if (isTagSelected(tag)) {
+      return availableTags.some((t) => t.name === tag)
+        ? availableTags.find((t) => t.name === tag).selectedColor
+        : '#478C5C';
+    } else {
+      return availableTags.some((t) => t.name === tag)
+        ? availableTags.find((t) => t.name === tag).color
+        : '#CCCCCC';
+    }
+  };
+  
   
   return (
     <View style={styles.container}>
@@ -180,6 +197,28 @@ const AddTaskScreen = ({ route, navigation }) => {
               <Text style={[styles.tagButtonText, { color: getTagTextColor(tag.name) }]}>{tag.name}</Text>
             </TouchableOpacity>
           ))}
+          {/* Custom Tag Input */}
+          <TextInput
+            style={styles.customTagInput}
+            value={customTag}
+            onChangeText={setCustomTag}
+            placeholder="Enter custom tag"
+          />
+          <TouchableOpacity
+            style={[
+              styles.tagButton,
+              { backgroundColor: '#CCCCCC' },
+              customTag ? styles.selectedTagButton : null,
+            ]}
+            onPress={() => {
+              if (customTag) {
+                toggleTag(customTag);
+                setCustomTag('');
+              }
+            }}
+          >
+            <Text style={[styles.tagButtonText, { color: '#FFFFFF' }]}>Add</Text>
+          </TouchableOpacity>
         </View>
       </View>
 

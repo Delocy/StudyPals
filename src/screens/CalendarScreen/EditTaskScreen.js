@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import TimePicker from 'react-native-modal-datetime-picker';
 import { updateDoc, doc, Timestamp } from "firebase/firestore";
-import { firestore, auth } from '../../../firebase.js';
+import { firestore } from '../../../firebase.js';
 
 const EditTaskScreen = ({ route, navigation }) => {
   const { task } = route.params;
