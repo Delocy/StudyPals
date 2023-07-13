@@ -8,23 +8,47 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 const ProfileScreen = () => {
   const [avatar, setAvatar] = useState(require('./HomeScreen/Images/avatar.png'));
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [hrsFocused, setHrsFocused] = useState(0);
 
   useEffect(() => {
-    const fetchCompletedTasks = async () => {
+    const fetchTimerData = async () => {
       try {
-        const tasksRef = collection(firestore, 'tasks');
-        const q = query(tasksRef, where('userId', '==', auth.currentUser.uid), where('completed', '==', true));
-        const snapshot = await getDocs(q);
+        const userId = auth.currentUser.uid;
 
-        const tasks = snapshot.docs.map((doc) => doc.data());
-        setCompletedTasks(tasks);
+        // Fetch the timer data
+        const timerDocRef = firestore.collection('pomodoro').doc(userId);
+        const timerDoc = await timerDocRef.get();
+
+        if (timerDoc.exists) {
+          const timerData = timerDoc.data();
+          console.log(timerData);
+
+          // Calculate the total hours spent
+          const totalHoursSpent = Object.values(timerData).reduce(
+            (total, data) => total + (data.totalWorkDuration || 0), 0
+          );
+          // console.log(totalHoursSpent);
+
+          // Fetch the completed tasks
+          const tasksQuerySnapshot = await firestore
+            .collection('tasks')
+            .where('userId', '==', userId)
+            .where('completed', '==', true)
+            .get();
+
+          const completedTasks = tasksQuerySnapshot.docs.map((doc) => doc.data());
+
+          // Update the completedTasks state and check for achievements
+          setCompletedTasks(completedTasks);
+          setHrsFocused(totalHoursSpent);
+        }
       } catch (error) {
-        console.error('Error fetching completed tasks:', error);
-        Alert.alert('Error', 'Failed to fetch completed tasks. Please try again.');
+        console.error('Error fetching timer data:', error);
+        Alert.alert('Error', 'Failed to fetch timer data. Please try again.');
       }
     };
 
-    fetchCompletedTasks();
+    fetchTimerData();
   }, []);
 
   const pickImage = async () => {
@@ -50,7 +74,6 @@ const ProfileScreen = () => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
         <Image source={avatar} style={styles.avatar} />
-        <Text style={styles.changeAvatarText}>Change Avatar</Text>
       </TouchableOpacity>
 
       <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
@@ -58,10 +81,8 @@ const ProfileScreen = () => {
       <View style={styles.achievementTitle}>
         <Text style={styles.sectionTitle}>Achievements</Text>
       </View>
-      
+
       <View style={styles.achievementsContainer}>
-
-
         {completedTasks.length >= 1 && (
           <View style={styles.achievementRow}>
             <Image source={require('./HomeScreen/Images/1.png')} style={styles.achievementIcon} />
@@ -81,6 +102,26 @@ const ProfileScreen = () => {
         )}
 
         {/* Add more achievements as needed */}
+      </View>
+
+      <View style={styles.achievementsContainer}>
+        {hrsFocused >= 60 && (
+          <View style={styles.achievementRow}>
+            <Image source={require('./HomeScreen/Images/4.png')} style={styles.achievementIcon} />
+          </View>
+        )}
+
+        {hrsFocused >= 600 && (
+          <View style={styles.achievementRow}>
+            <Image source={require('./HomeScreen/Images/5.png')} style={styles.achievementIcon} />
+          </View>
+        )}
+
+        {hrsFocused >= 6000 && (
+          <View style={styles.achievementRow}>
+            <Image source={require('./HomeScreen/Images/6.png')} style={styles.achievementIcon} />
+          </View>
+        )}
       </View>
 
       <TouchableOpacity style={styles.button} onPress={logoutUser}>
@@ -120,13 +161,13 @@ const styles = StyleSheet.create({
   },
   achievementsContainer: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 5,
     flexDirection: 'row',
     alignItems: 'center',
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'popSemiBold',
+    fontFamily: 'popRegular',
     marginBottom: 10,
   },
   achievementTitle: {
