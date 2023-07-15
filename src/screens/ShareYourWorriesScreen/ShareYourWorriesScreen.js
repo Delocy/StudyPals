@@ -170,19 +170,18 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     setGeneratedPrompt(''); // Clear the selected prompt after adding to the diary
   };
 
-  const renderEmptyDiary = () => {
-    // Sort diaryEntries by timestamp in ascending order
-    const sortedEntries = diaryEntries.sort(
-      (a, b) => a.timestamp.toDate() - b.timestamp.toDate()
-    );
-    // Get the three most recent entries
-    const recentEntries = sortedEntries.slice(-3).reverse();
+  const currentDate = new Date();
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(currentDate.getDate() - 3);
   
+  const recentEntries = diaryEntries.filter(entry => entry.timestamp.toDate() >= threeDaysAgo); 
+  
+  const renderEmptyDiary = () => {
     const flipCard = () => {
       setShowBenefits(!showBenefits);
     };
-  
-    if (!recentEntries.length) {
+
+    if (recentEntries.length === 0) {
       return (
         <TouchableOpacity style={styles.emptyDiaryContainer} onPress={flipCard}>
           <View style={styles.emptyDiaryCard}>
@@ -208,10 +207,10 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       );
-    } else {
-      return null;
     }
-  };
+  
+    return null;
+  };  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -289,7 +288,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {diaryEntries.length === 0 ? (
+        {recentEntries ? (
           renderEmptyDiary()
         ) : (
         <View style={styles.btmContainer}>
