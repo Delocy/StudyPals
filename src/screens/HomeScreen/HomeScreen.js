@@ -125,7 +125,6 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.categoryTitleWithArrow}>
             <Text style={styles.categoryTitle}>Analytics</Text>
             <View style={styles.arrowContainer}>
-            <Text style={styles.categoryTitle}>Insights</Text>
                 {/* <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} /> */}
             </View> 
         </View>
