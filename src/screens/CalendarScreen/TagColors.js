@@ -5,7 +5,7 @@ const Tag = ({ text }) => {
   let color, textColor;
 
   switch (text.toLowerCase()) {
-    case 'office':
+    case 'school':
       color = '#ECEAFF';
       textColor = '#8F81FE';
       break;
@@ -22,7 +22,7 @@ const Tag = ({ text }) => {
       textColor = '#1EC1C3'; // You can set the desired color for 'personal'
       break;
     default:
-      color = '#000000';
+      color = '#779ECB';
       textColor = '#FFFFFF';
       break;
   }

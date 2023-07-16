@@ -15,8 +15,9 @@ const HomeScreen = ({ navigation }) => {
     const user = auth.currentUser;
 
     const tasksRef = firestore.collection('tasks');
-    const query = tasksRef.where('time', '==', currentDate)
-                          .where('userId', '==', user.uid);
+    const query = tasksRef
+    .where('time', '==', currentDate)
+    .where('userId', '==', user.uid);
 
     const unsubscribe = query.onSnapshot((snapshot) => {
       const totalCount = snapshot.size;
@@ -64,6 +65,10 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('Diary Analytics');
   };
 
+  const navigateToTimerAnalytics = () => {
+    navigation.navigate('Timer Analytics');
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -92,7 +97,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       ) : (
         <View style={styles.restDayContainer}>
-          <Text numberOfLines={3} style={styles.restDayText}>It's your rest day!You have no task planned for the day</Text>
+          <Text numberOfLines={4} style={styles.restDayText}>It's your rest day!You have no task planned for the day.</Text>
           <Image source={require('./Images/dog.png')} style={styles.restImage} />
         </View>
       )}
@@ -119,9 +124,10 @@ const HomeScreen = ({ navigation }) => {
       <View>
       <View style={styles.categoryTitleWithArrow}>
             <Text style={styles.categoryTitle}>Analytics</Text>
-            {/* <View style={styles.arrowContainer}>
-                <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} />
-            </View> */}
+            <View style={styles.arrowContainer}>
+            <Text style={styles.categoryTitle}>Insights</Text>
+                {/* <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} /> */}
+            </View> 
         </View>
         <ScrollView horizontal>
             <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToDiaryAnalytics}>
@@ -129,7 +135,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.content}>Track your mood</Text>
             <Image source={require('./Images/Diary.png')} style={styles.restImage} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
+            <TouchableOpacity style={styles.containerButton} onPress={navigateToTimerAnalytics}>
             <Text style={styles.contentTitle}>Timer</Text>
             <Text style={styles.content}>See how focused you are</Text>
             <Image source={require('./Images/Timer.png')} style={styles.restImage} />

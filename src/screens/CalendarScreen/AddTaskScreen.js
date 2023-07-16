@@ -1,31 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import TimePicker from 'react-native-modal-datetime-picker';
-import { initializeApp } from "firebase/app";
-import { getFirestore,collection, addDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-//import { getAnalytics } from "firebase/analytics";
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAae5wIuRN8tuqvKTbwJJDWOCDFutgF2M0",
-  authDomain: "studypals-auth.firebaseapp.com",
-  projectId: "studypals-auth",
-  storageBucket: "studypals-auth.appspot.com",
-  messagingSenderId: "848602608150",
-  appId: "1:848602608150:web:214341bebeac9aea74fb37",
-  measurementId: "G-C13G3L9F88"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth();
-
-// const analytics = getAnalytics(app);
+import { collection, addDoc } from "firebase/firestore";
+import { firestore, auth } from '../../../firebase.js';
 
 const AddTaskScreen = ({ route, navigation }) => {
   const [taskName, setTaskName] = useState('');
@@ -35,13 +12,13 @@ const AddTaskScreen = ({ route, navigation }) => {
   const [isStartTimePickerVisible, setStartTimePickerVisible] = useState(false);
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [customTag, setCustomTag] = useState('');
   const availableTags = [
-    { name: 'Office', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
+    { name: 'School', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
     { name: 'Home', color: '#FFEFEB', selectedColor: '#F0A58E', textColor: '#F0A58E', selectedTextColor: '#FFFFFF' },
     { name: 'Personal', color: '#D1FEFF', selectedColor: '#1EC1C3', textColor: '#1EC1C3', selectedTextColor: '#FFFFFF' },
     { name: 'Urgent', color: '#FFE9ED', selectedColor: '#F57C96', textColor: '#F57C96', selectedTextColor: '#FFFFFF' },
   ];
-  
 
   const formatTime = (time) => {
     if (!time) return '';
@@ -62,16 +39,15 @@ const AddTaskScreen = ({ route, navigation }) => {
     try {
       const user = auth.currentUser;
       if (user) {
-        const db = getFirestore();
+        const db = firestore;
         const task = {
           name: taskName,
           description: taskDescription,
           startTime: taskStartTime,
           endTime: taskEndTime,
           time: route.params.date,
-          tags: selectedTags,
-          // Add more properties as needed
-          userId: user.uid, // Include the user's ID
+          tags: selectedTags.concat(customTag),
+          userId: user.uid,
           completed: false,
         };
   
@@ -126,11 +102,29 @@ const AddTaskScreen = ({ route, navigation }) => {
   };
 
   const getTagTextColor = (tag) => {
-    return isTagSelected(tag) ? '#FFFFFF' : availableTags.find((t) => t.name === tag).textColor;
-  };  
-
+    if (isTagSelected(tag)) {
+      return '#FFFFFF';
+    } else if (availableTags.some((t) => t.name === tag)) {
+      return availableTags.find((t) => t.name === tag).textColor;
+    } else {
+      return '#000000';
+    }
+  };
+  
   const getTagBackgroundColor = (tag) => {
-    return isTagSelected(tag) ? availableTags.find((t) => t.name === tag).selectedColor : availableTags.find((t) => t.name === tag).color;
+    if (isTagSelected(tag)) {
+      return availableTags.some((t) => t.name === tag)
+        ? availableTags.find((t) => t.name === tag).selectedColor
+        : '#779ECB';
+    } else {
+      return availableTags.some((t) => t.name === tag)
+        ? availableTags.find((t) => t.name === tag).color
+        : '#CCCCCC';
+    }
+  };
+
+  const handleRemoveTag = (tag) => {
+    setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag));
   };
   
   return (
@@ -170,7 +164,6 @@ const AddTaskScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-
       {/* Time picker component */}
       <TimePicker
         isVisible={isStartTimePickerVisible}
@@ -204,7 +197,46 @@ const AddTaskScreen = ({ route, navigation }) => {
               <Text style={[styles.tagButtonText, { color: getTagTextColor(tag.name) }]}>{tag.name}</Text>
             </TouchableOpacity>
           ))}
+          {/* Custom Tag Input */}
+          {selectedTags
+          .filter((tag) => !availableTags.some((availableTag) => availableTag.name === tag))
+          .map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tagButton,
+                isTagSelected(tag) ? styles.selectedTagButton : null,
+                { backgroundColor: getTagBackgroundColor(tag) },
+              ]}
+              onPress={() => handleRemoveTag(tag)}
+            >
+              <Text style={[styles.tagButtonText, { color: getTagTextColor(tag) }]}>{tag}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+        <View style={styles.tagButtonContainer}>
+            <TextInput
+            style={styles.customTagInput}
+            value={customTag}
+            onChangeText={setCustomTag}
+            placeholder="Enter custom tag"
+          />
+          <TouchableOpacity
+            style={[
+              styles.tagButton,
+              { backgroundColor: '#CCCCCC' },
+              customTag ? styles.selectedTagButton : null,
+            ]}
+            onPress={() => {
+              if (customTag) {
+                toggleTag(customTag);
+                setCustomTag('');
+              }
+            }}
+          >
+            <Text style={[styles.tagButtonText, { color: '#FFFFFF' }]}>Add</Text>
+          </TouchableOpacity>
+          </View>
       </View>
 
       

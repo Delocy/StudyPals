@@ -4,7 +4,19 @@ import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import EditScreen from "./EditScreen";
-import Header from "../../components/Header";
+import { firestore, auth, firebase } from '../../../firebase.js';
+import { Audio } from 'expo-av';
+
+const trackFilePaths = {
+  'TESTING': require('./Audio/alarm.mp3'),
+  'Lofi Track 1': require('./Audio/reflectedlight.mp3'),
+  'Lofi Track 2': require('./Audio/bathroom.mp3'),
+  'Lofi Track 3': require('./Audio/lifelike.mp3'),
+  'Lofi Track 4': require('./Audio/emptymind.mp3'),
+  'Lofi Track 5': require('./Audio/study.mp3'),
+  'Lofi Track 6': require('./Audio/weekend.mp3'),
+  'Lofi Track 7': require('./Audio/ambientlofi.mp3'),
+};
 
 const INITIAL_WORK_DURATION = 25; // in minutes
 const INITIAL_SHORT_BREAK_DURATION = 5; // in minutes
@@ -21,10 +33,51 @@ const PomodoroScreen = () => {
   const [breakTime, setBreakTime] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [tintColor, setTintColor] = useState("#F6FFDE"); // Add state for tint color
-
   const navigation = useNavigation();
+  const userId = auth.currentUser.uid;
+  const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const [sessionCount, setSessionCount] = useState(1);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [sound, setSound] = useState(null)
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState(null);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
 
   useEffect(() => {
+    const createUserEntry = async () => {
+      try {
+        const userId = auth.currentUser.uid;
+        const userDoc = await firestore.collection('pomodoro').doc(userId).get();
+
+          if (!userDoc.exists) {
+            // User document doesn't exist, create a new entry
+            await firestore.collection('pomodoro').doc(userId).set({
+              [currentDate]: {
+                totalWorkDuration: 0,
+                totalBreakDuration: 0,
+              },
+            });
+          } else {
+            const userData = userDoc.data();
+
+            if (!userData[currentDate]) {
+              // User document exists, but current date doesn't have an entry
+              await firestore.collection('pomodoro').doc(userId).update({
+                [`${currentDate}`]: {
+                  totalWorkDuration: 0,
+                  totalBreakDuration: 0,
+                },
+              });
+            }
+          }
+        } catch (error) {
+          // Handle error while creating/updating the user entry
+          console.log('Error creating/updating user entry:', error);
+        }
+      };
+
+    createUserEntry();
+
     let interval = null;
   
     if (active && count > 0) {
@@ -41,26 +94,173 @@ const PomodoroScreen = () => {
       if (breakTime) {
         setBreakTime(false);
         setTintColor("#F6FFDE");
+        playRingAlarmSound();
+
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalBreakDuration`]: firebase.firestore.FieldValue.increment(shortBreakDuration),
+          },
+          { merge: true }
+        )    
   
         if (numFocusSessions === 1) {
           setActive(false);
           setCount(workDuration * 60);
           setNumFocusSessions(modifiedNumFocusSessions); // Reset the number of sessions
+          setSessionCount(1)
         } else {
           setCount(workDuration * 60);
           setNumFocusSessions((prevNumSessions) => prevNumSessions - 1);
+          setSessionCount(sessionCount + 1)
         }
       } else {
         setBreakTime(true);
         setTintColor("#fff");
         setCount(shortBreakDuration * 60);
+        playRingAlarmSound();
+
+        firestore.collection('pomodoro').doc(userId).update(
+          {
+            [`${currentDate}.totalWorkDuration`]: firebase.firestore.FieldValue.increment(workDuration),
+          },
+          { merge: true }
+        );
       }
     }
   
     return () => clearInterval(interval);
   }, [active, count, breakTime, workDuration, shortBreakDuration, numFocusSessions, modifiedNumFocusSessions]);
-  
 
+  const playRingAlarmSound = async () => {
+    try {
+      const alarmSound = require('./Audio/alarm.mp3');
+      const { sound: alarm } = await Audio.Sound.createAsync(alarmSound);
+      await alarm.playAsync();
+    } catch (error) {
+      console.log('Error playing ring alarm sound:', error);
+    }
+  };  
+
+
+  const playTrack = async (track) => {
+    if (isPlaying) {
+      await pauseTrack();
+    }
+  
+    setSelectedTrack(track);
+  
+    try {
+      const filePath = trackFilePaths[track];
+      console.log('File path:', filePath);
+  
+      const newSound = new Audio.Sound();
+      await newSound.loadAsync(filePath);
+  
+      if (currentTrackIndex === null || currentTrackIndex === track) {
+        // Resume playback from the stored playback position
+        if (playbackPosition) {
+          await newSound.playFromPositionAsync(playbackPosition);
+        } else {
+          await newSound.playAsync();
+        }
+      } else {
+        await newSound.playAsync();
+      }
+  
+      // Enable looping for the new sound object
+      await newSound.setIsLoopingAsync(true);
+  
+      setSound(newSound);
+      setIsPlaying(true);
+      setCurrentTrackIndex(track);
+  
+      const playbackStatusUpdate = async (status) => {
+        if (!status.isLoaded && status.error) {
+          console.log('Error playing audio:', status.error);
+          await skipToNextTrack();
+        }
+      };
+  
+      newSound.setOnPlaybackStatusUpdate(playbackStatusUpdate);
+    } catch (error) {
+      console.log('Error playing audio:', error);
+    }
+  };
+  
+  const pauseTrack = async () => {
+    if (sound && isPlaying) {
+      try {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          setPlaybackPosition(status.positionMillis);
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        }
+      } catch (error) {
+        console.log('Error pausing audio:', error);
+      }
+    }
+  };
+
+  const skipToNextTrack = async () => {
+    try {
+      if (sound && sound.getStatusAsync().isLoaded) {
+        // Pause the current track
+        await sound.pauseAsync();
+        setIsPlaying(false);
+  
+        // Unload the current track
+        await sound.unloadAsync();
+      }
+    
+      // Get the array of track names
+      const tracks = Object.keys(trackFilePaths);
+    
+      // Find the index of the currently selected track
+      const currentIndex = tracks.findIndex((track) => track === selectedTrack);
+    
+      // Determine the index of the next track
+      const nextIndex = (currentIndex + 1) % tracks.length;
+    
+      // Get the name of the next track
+      const nextTrack = tracks[nextIndex];
+    
+      // Play the next track
+      await playTrack(nextTrack);
+    } catch (error) {
+      console.log("Error skipping to next track:", error);
+    }
+  };
+
+  const skipToPreviousTrack = async () => {
+    try {
+      if (sound && sound.getStatusAsync().isLoaded) {
+        // Unload the current track
+        await sound.unloadAsync();
+        setSound(null);
+      }
+  
+      // Get the array of track names
+      const tracks = Object.keys(trackFilePaths);
+  
+      // Find the index of the currently selected track
+      const currentIndex = tracks.findIndex((track) => track === selectedTrack);
+  
+      // Determine the index of the previous track
+      const previousIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+  
+      // Get the name of the previous track
+      const previousTrack = tracks[previousIndex];
+  
+      if (previousTrack) {
+        // Play the previous track
+        await playTrack(previousTrack);
+      }
+    } catch (error) {
+      console.log("Error skipping to previous track:", error);
+    }
+  };  
+  
   const handleStart = () => {
     setActive(true);
   };
@@ -72,9 +272,9 @@ const PomodoroScreen = () => {
   const handleReset = () => {
     setActive(false);
     setCount(workDuration * 60);
-    setNumFocusSessions(modifiedNumFocusSessions);
     setBreakTime(false);
     setTintColor("#F6FFDE");
+    setSessionCount(1);
   };
 
   const handleEdit = () => {
@@ -93,6 +293,7 @@ const PomodoroScreen = () => {
     setCount(newWorkDuration * 60);
     setActive(false);
     setBreakTime(false);
+    setSessionCount(1);
   };
 
   const handleCancelEdit = () => {
@@ -110,31 +311,38 @@ const PomodoroScreen = () => {
         onCancel={handleCancelEdit}
         workDuration={workDuration}
         shortBreakDuration={shortBreakDuration}
-        numFocusSessions={numFocusSessions}
+        numFocusSessions={modifiedNumFocusSessions}
       />
     );
   }
 
   return (
     <View style={styles.container}>
-      {active && breakTime && (
-        <>
-        <Header>It's Break Time!</Header>
-        <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
-        </>
-      )}
+      <View style={styles.headerContainer}>
+        {breakTime && (
+          <>
+          <Text style={styles.headerText}>It's Break Time!</Text>
+          <Text style={styles.text}>Walk, breathe, rehydrate!</Text>
+          </>
+        )}
+      </View>
 
       <View style={styles.circle}>
         <AnimatedCircularProgress
           size={250}
           width={11}
-          fill={(count * 100) / (workDuration * 60)}
+          fill={breakTime ? 100 : (count * 100) / (workDuration * 60)}
           tintColor={tintColor}
         >
           {() => (
-            <Text style={styles.timerText}>
-              {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
-            </Text>
+            <>
+              <Text style={styles.timerText}>
+                {formatTime(Math.floor(count / 60))}:{formatTime(count % 60)}
+              </Text>
+              <Text style={breakTime ? styles.sessionBreakText : styles.sessionText}>
+                Session {sessionCount}/{modifiedNumFocusSessions}
+              </Text>
+            </>
           )}
         </AnimatedCircularProgress>
       </View>
@@ -159,6 +367,40 @@ const PomodoroScreen = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      <View style={styles.songContainer}>
+
+          {/* Pause and Skip buttons */}
+          <View style={styles.buttonsContainer}>
+          <TouchableOpacity onPress={skipToPreviousTrack}>
+            <Ionicons name="play-skip-back-sharp" size={17} color="#f7f7f7" />
+          </TouchableOpacity>
+
+          {!sound || !isPlaying ? (
+            <TouchableOpacity onPress={() => playTrack(selectedTrack || 'Lofi Track 1')}>
+            <Ionicons name="play-sharp" size={24} color="#f7f7f7" />
+          </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={pauseTrack}
+            >
+              <Ionicons name="pause" size={24} color="#f7f7f7" />
+            </TouchableOpacity>
+          )}
+            <TouchableOpacity
+              onPress={skipToNextTrack}
+              disabled={!selectedTrack}
+            >
+              <Ionicons name="play-skip-forward-sharp" size={17} color="#f7f7f7" />
+            </TouchableOpacity>
+
+            {selectedTrack && (
+              <Text style={styles.currentTrackText}>{selectedTrack}</Text>
+            )}
+            
+          </View>      
+        </View>
+
     </View>
   );
 };
@@ -170,9 +412,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: '#F6FFDE',
   },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  headerText: {
+    fontSize: 36,
+    color: '#478C5C',
+    fontFamily: 'popBold',
+  },
   text: {
-    marginTop: -16,
-    marginBottom: 30,
     fontFamily: 'popRegular',
     color: '#000',
   },
@@ -181,6 +430,16 @@ const styles = StyleSheet.create({
     fontFamily: 'popMedium',
     textAlign: "center",
     color: "#F6FFDE"
+  },
+  sessionText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#E3F2C1',
+  },
+  sessionBreakText: {
+    fontFamily: 'popBold',
+    fontSize: 14,
+    color: '#fff',
   },
   circle: {
     backgroundColor: '#478C5C',
@@ -199,11 +458,25 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "space-evenly",
     alignItems: "center",
-    marginTop: 40,
+    marginTop: '10%',
     borderRadius: 240,
     backgroundColor: "#478C5C",
     width: 50,
     height: 50,
+  },
+  currentTrackText: {
+    justifyContent: 'center',
+    textAlign: 'center',
+    alignItems: 'center',
+    fontFamily: 'popMedium',
+    fontSize: 16,
+    color: '#f7f7f7'
+  },
+  songContainer: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: '#191C26', // Adjust the background color as needed
+    padding: '4%',
   }
 });
 
