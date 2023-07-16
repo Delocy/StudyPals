@@ -46,7 +46,7 @@ const AddTaskScreen = ({ route, navigation }) => {
           startTime: taskStartTime,
           endTime: taskEndTime,
           time: route.params.date,
-          tags: selectedTags,
+          tags: selectedTags.concat(customTag), // Add the custom tag to the selected tags
           // Add more properties as needed
           userId: user.uid, // Include the user's ID
           completed: false,
@@ -98,7 +98,6 @@ const AddTaskScreen = ({ route, navigation }) => {
     }
   };
   
-  
   const isTagSelected = (tag) => {
     return selectedTags.includes(tag);
   };
@@ -117,14 +116,17 @@ const AddTaskScreen = ({ route, navigation }) => {
     if (isTagSelected(tag)) {
       return availableTags.some((t) => t.name === tag)
         ? availableTags.find((t) => t.name === tag).selectedColor
-        : '#478C5C';
+        : '#779ECB';
     } else {
       return availableTags.some((t) => t.name === tag)
         ? availableTags.find((t) => t.name === tag).color
         : '#CCCCCC';
     }
   };
-  
+
+  const handleRemoveTag = (tag) => {
+    setSelectedTags(selectedTags.filter((selectedTag) => selectedTag !== tag));
+  };
   
   return (
     <View style={styles.container}>
@@ -163,7 +165,6 @@ const AddTaskScreen = ({ route, navigation }) => {
         </View>
       </View>
 
-
       {/* Time picker component */}
       <TimePicker
         isVisible={isStartTimePickerVisible}
@@ -198,7 +199,24 @@ const AddTaskScreen = ({ route, navigation }) => {
             </TouchableOpacity>
           ))}
           {/* Custom Tag Input */}
-          <TextInput
+          {selectedTags
+          .filter((tag) => !availableTags.some((availableTag) => availableTag.name === tag))
+          .map((tag) => (
+            <TouchableOpacity
+              key={tag}
+              style={[
+                styles.tagButton,
+                isTagSelected(tag) ? styles.selectedTagButton : null,
+                { backgroundColor: getTagBackgroundColor(tag) },
+              ]}
+              onPress={() => handleRemoveTag(tag)}
+            >
+              <Text style={[styles.tagButtonText, { color: getTagTextColor(tag) }]}>{tag}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.tagButtonContainer}>
+            <TextInput
             style={styles.customTagInput}
             value={customTag}
             onChangeText={setCustomTag}
@@ -219,7 +237,7 @@ const AddTaskScreen = ({ route, navigation }) => {
           >
             <Text style={[styles.tagButtonText, { color: '#FFFFFF' }]}>Add</Text>
           </TouchableOpacity>
-        </View>
+          </View>
       </View>
 
       
