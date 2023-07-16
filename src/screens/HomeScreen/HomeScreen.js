@@ -104,9 +104,9 @@ const HomeScreen = ({ navigation }) => {
       <View>
         <View style={styles.categoryTitleWithArrow}>
             <Text style={styles.categoryTitle}>Start your day</Text>
-            {/* <View style={styles.arrowContainer}>
+            <View style={styles.arrowContainer}>
                 <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} />
-            </View> */}
+            </View>
         </View>
         <ScrollView horizontal>
             <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToMeditation}>
@@ -123,11 +123,10 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <View>
       <View style={styles.categoryTitleWithArrow}>
-            <Text style={styles.categoryTitle}>Analytics</Text>
-            <View style={styles.arrowContainer}>
             <Text style={styles.categoryTitle}>Insights</Text>
-                {/* <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} /> */}
-            </View> 
+            <View style={styles.arrowContainer}>
+                <MaterialIcons name="arrow-forward-ios" size={15} color="black" style={styles.arrowIcon} />
+            </View>
         </View>
         <ScrollView horizontal>
             <TouchableOpacity style={styles.containerButton} onPress={handleContainerPressToDiaryAnalytics}>
