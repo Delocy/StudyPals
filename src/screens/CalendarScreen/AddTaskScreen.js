@@ -46,9 +46,8 @@ const AddTaskScreen = ({ route, navigation }) => {
           startTime: taskStartTime,
           endTime: taskEndTime,
           time: route.params.date,
-          tags: selectedTags.concat(customTag), // Add the custom tag to the selected tags
-          // Add more properties as needed
-          userId: user.uid, // Include the user's ID
+          tags: selectedTags.concat(customTag),
+          userId: user.uid,
           completed: false,
         };
   
