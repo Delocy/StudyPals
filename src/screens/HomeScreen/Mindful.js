@@ -7,7 +7,7 @@ import { Entypo, AntDesign, SimpleLineIcons, MaterialCommunityIcons } from '@exp
 const MeditationScreen = () => {
   const [timer, setTimer] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState(10); // Default duration is 10 minutes
+  const [selectedDuration, setSelectedDuration] = useState(10);
   const [isPlaying, setIsPlaying] = useState(false);
   const [sound, setSound] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -125,13 +125,13 @@ const MeditationScreen = () => {
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={toggleMute}>
+          {/* <TouchableOpacity style={styles.button} onPress={toggleMute}>
             {isMuted ? (
               <SimpleLineIcons name="volume-off" size={24} color="#478C5C" />
             ) : (
               <SimpleLineIcons name="volume-2" size={24} color="#478C5C" />
             )}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <Slider
           style={styles.slider}
