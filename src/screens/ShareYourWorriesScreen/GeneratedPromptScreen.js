@@ -8,7 +8,7 @@ const GeneratedPromptScreen = ({ route }) => {
     <View style={styles.container}>
       <Image source={require('./prompt.png')} style={styles.image} />
       <Text style={styles.studyPalsText}>StudyPals:</Text>
-      <Text style={styles.quote}>{generatedPrompt}</Text>
+      <Text style={styles.quote}>{generatedPrompt.trim()}</Text>
     </View>
   );
 };
