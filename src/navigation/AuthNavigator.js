@@ -1,6 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import TabNavigator from './TabNavigator';
@@ -12,9 +11,11 @@ import DiaryEntriesScreen from '../screens/ShareYourWorriesScreen/DiaryEntriesSc
 import EditTaskScreen from '../screens/CalendarScreen/EditTaskScreen';
 import MeditationScreen from '../screens/HomeScreen/Mindful';
 import ResourcesScreen from '../screens/HomeScreen/Resources';
-import TimerAnalyticsScreen from '../screens/HomeScreen/TimerAnalyticsScreen';
+import TimerAnalyticsScreen from '../screens/HomeScreen/TimerAnalyticsScreen/TimerAnalyticsScreen';
 import DiaryAnalyticsScreen from '../screens/HomeScreen/DiaryAnalytics';
 import GeneratedPromptScreen from '../screens/ShareYourWorriesScreen/GeneratedPromptScreen';
+import ProductivityProfileScreen from '../screens/HomeScreen/TimerAnalyticsScreen/ProductivityProfileScreen';
+import NoTimerDataScreen from '../screens/HomeScreen/TimerAnalyticsScreen/NoTimerDataScreen';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -35,6 +36,8 @@ function AuthNavigator() {
         <Stack.Screen name="Resources" component={ResourcesScreen} />
         <Stack.Screen name="Timer Analytics" component={TimerAnalyticsScreen} />
         <Stack.Screen name="Diary Analytics" component={DiaryAnalyticsScreen} />
+        <Stack.Screen name="Productivity Profile" component={ProductivityProfileScreen} />
+        <Stack.Screen name="No Timer" component={NoTimerDataScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
