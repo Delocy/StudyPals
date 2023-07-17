@@ -101,33 +101,53 @@ const ShareYourWorriesScreen = ({ navigation }) => {
 
   const generatePrompt = async () => {
     try {
-      // Generate the prompt using the API call
-      const response = await fetch(GPT_LINK, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`,
-        },
-        body: JSON.stringify({
-          prompt: message + '.Give me an encouragement message to make my day. Speak to me personally with min 40 words. Finish your sentence.',
-          max_tokens: 80,
-          top_p: 0.7,
-          temperature: 0.8
-        }),
-      });
+      let generatedPrompt = '';
   
-      const data = await response.json();
-      console.log('API Response:', data);
-      console.log('Generated Prompt:', data.choices[0].text);
+      while (true) {
+        // Generate the prompt using the API call
+        const response = await fetch(GPT_LINK, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            prompt: message + '.Give me an encouragement message to make my day. Speak to me personally with min 40 words. Finish your sentence.',
+            max_tokens: 80,
+            top_p: 0.7,
+            temperature: 0.8
+          }),
+        });
   
-      await setGeneratedPrompt(data.choices[0].text);
-      await addToDiary(data.choices[0].text); // Add the diary entry when the user presses the button
+        const data = await response.json();
+        console.log('API Response:', data);
+        console.log('Generated Prompt:', data.choices[0].text);
   
-      if (data.choices[0].text) {
-        navigation.navigate('GeneratedPrompt', { generatedPrompt: data.choices[0].text });
-      } else {
-        setToastMessage('Failed to generate prompt. Please try again!');
+        generatedPrompt = data.choices[0].text;
+        
+        // VALIDATION CHECKS.
+        // Check if generated prompt ends with punctuation
+        const lastChar = generatedPrompt.trim().slice(-1);
+        if (!['.', '!', '?'].includes(lastChar)) {
+          // Remove text after the last punctuation mark
+          const lastIndex = generatedPrompt.search(/[.!?]/g);
+          if (lastIndex >= 0) {
+            generatedPrompt = generatedPrompt.substring(0, lastIndex + 1);
+          }
+        }
+  
+        // Check if generated prompt has at least 40 words
+        const wordCount = generatedPrompt.trim().split(' ').length;
+        if (wordCount >= 40) {
+          // If the prompt passes the validation checks, break the loop and proceed
+          break;
+        }
       }
+  
+      await setGeneratedPrompt(generatedPrompt);
+      await addToDiary(generatedPrompt); // Add the diary entry when the user presses the button
+  
+      navigation.navigate('GeneratedPrompt', { generatedPrompt });
     } catch (error) {
       console.error('Error:', error);
       navigation.goBack();
