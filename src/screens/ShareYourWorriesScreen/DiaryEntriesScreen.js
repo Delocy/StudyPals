@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import { ScrollView } from 'react-native-virtualized-view'
 import { auth } from '../../../firebase.js';
 
 const DiaryEntriesScreen = ({ route }) => {
@@ -33,34 +34,22 @@ const DiaryEntriesScreen = ({ route }) => {
     const totalEntries = entries.length;
     let currentStreak = 0;
     let longestStreak = 0;
-    let streakCounter = 0;
   
-    const currentDate = new Date().setHours(0, 0, 0, 0);
-  
-    for (let i = totalEntries - 1; i >= 0; i--) {
-      const entryDate = entries[i].timestamp.toDate().setHours(0, 0, 0, 0);
-      const timeDiff = Math.abs(currentDate - entryDate);
-      const diffDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-  
-      if (diffDays === 0 || (diffDays === 1 && streakCounter > 0)) {
-        // If entry is from today or within 1 day of the previous entry, increase streak counter
-        streakCounter += 1;
-        currentStreak = streakCounter;
+    for (let i = 0; i < totalEntries; i++) {
+      if (i === 0 || entries[i].timestamp.toDate() - entries[i - 1].timestamp.toDate() <= 86400000) {
+        // If it's the first entry or the current entry is within one day of the previous entry, increase current streak
+        currentStreak += 1;
       } else {
-        // If entry is not from today or not within 1 day of the previous entry, reset streak counter
-        streakCounter = 0;
+        // Reset current streak if there is a gap of more than one day between entries
+        currentStreak = 1;
       }
   
-      // Update longest streak
-      if (streakCounter > longestStreak) {
-        longestStreak = streakCounter;
-      }
+      // Update the longest streak if the current streak is greater
+      longestStreak = Math.max(longestStreak, currentStreak);
     }
   
     return { totalEntries, currentStreak, longestStreak };
-  };
-  
-  
+  };  
   
   const insights = calculateInsights();
 
@@ -164,7 +153,7 @@ const DiaryEntriesScreen = ({ route }) => {
       >
         <View style={styles.dropdownContainer}>
           <TouchableOpacity style={styles.dropdownOption} onPress={() => handleYearSelection("2023")}>
-            <Text>2023</Text>
+            <Text style={styles.month}>2023</Text>
           </TouchableOpacity>
           {/* Render other year options */}
         </View>
@@ -201,13 +190,15 @@ const DiaryEntriesScreen = ({ route }) => {
       </View>
       {renderMonthDropdown()}
       {renderYearDropdown()}
-      <FlatList
-        data={entries.reverse()}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={styles.flatList}
-        style={styles.flatList}
-      />
+      <ScrollView>
+        <FlatList
+          data={entries.reverse()}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={styles.flatList}
+          style={styles.flatList}
+        />
+      </ScrollView>
     </View>
   );
 };
