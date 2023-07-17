@@ -6,7 +6,7 @@ import ShareYourWorriesScreen from "../screens/ShareYourWorriesScreen/ShareYourW
 import CalendarScreen from "../screens/CalendarScreen/CalendarScreen";
 import HomeScreen from '../screens/HomeScreen/HomeScreen';
 import PomodoroScreen from "../screens/PomodoroScreen/PomodoroScreen";
-import ProfileScreen from "../screens/ProfileScreen";
+import ProfileScreen from "../screens/ProfileScreen/ProfileScreen";
 
 // Screen names
 const shareYourWorriesName = "Share Your Worries";

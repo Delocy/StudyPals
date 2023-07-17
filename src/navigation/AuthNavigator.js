@@ -15,6 +15,7 @@ import ResourcesScreen from '../screens/HomeScreen/Resources';
 import TimerAnalyticsScreen from '../screens/HomeScreen/TimerAnalyticsScreen';
 import DiaryAnalyticsScreen from '../screens/HomeScreen/DiaryAnalytics';
 import GeneratedPromptScreen from '../screens/ShareYourWorriesScreen/GeneratedPromptScreen';
+import FriendsScreen from '../screens/ProfileScreen/Friends';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -35,6 +36,7 @@ function AuthNavigator() {
         <Stack.Screen name="Resources" component={ResourcesScreen} />
         <Stack.Screen name="Timer Analytics" component={TimerAnalyticsScreen} />
         <Stack.Screen name="Diary Analytics" component={DiaryAnalyticsScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
