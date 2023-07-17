@@ -4,8 +4,19 @@ import { AnimatedCircularProgress } from "react-native-circular-progress";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import EditScreen from "./EditScreen";
-import Header from "../../components/Header";
 import { firestore, auth, firebase } from '../../../firebase.js';
+import { Audio } from 'expo-av';
+
+const trackFilePaths = {
+  'TESTING': require('./Audio/alarm.mp3'),
+  'Lofi Track 1': require('./Audio/reflectedlight.mp3'),
+  'Lofi Track 2': require('./Audio/bathroom.mp3'),
+  'Lofi Track 3': require('./Audio/lifelike.mp3'),
+  'Lofi Track 4': require('./Audio/emptymind.mp3'),
+  'Lofi Track 5': require('./Audio/study.mp3'),
+  'Lofi Track 6': require('./Audio/weekend.mp3'),
+  'Lofi Track 7': require('./Audio/ambientlofi.mp3'),
+};
 
 const INITIAL_WORK_DURATION = 25; // in minutes
 const INITIAL_SHORT_BREAK_DURATION = 5; // in minutes
@@ -26,6 +37,11 @@ const PomodoroScreen = () => {
   const userId = auth.currentUser.uid;
   const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
   const [sessionCount, setSessionCount] = useState(1);
+  const [selectedTrack, setSelectedTrack] = useState(null);
+  const [sound, setSound] = useState(null)
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState(null);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
 
   useEffect(() => {
     const createUserEntry = async () => {
@@ -78,6 +94,7 @@ const PomodoroScreen = () => {
       if (breakTime) {
         setBreakTime(false);
         setTintColor("#F6FFDE");
+        playRingAlarmSound();
 
         firestore.collection('pomodoro').doc(userId).update(
           {
@@ -100,6 +117,7 @@ const PomodoroScreen = () => {
         setBreakTime(true);
         setTintColor("#fff");
         setCount(shortBreakDuration * 60);
+        playRingAlarmSound();
 
         firestore.collection('pomodoro').doc(userId).update(
           {
@@ -112,8 +130,137 @@ const PomodoroScreen = () => {
   
     return () => clearInterval(interval);
   }, [active, count, breakTime, workDuration, shortBreakDuration, numFocusSessions, modifiedNumFocusSessions]);
-  
 
+  const playRingAlarmSound = async () => {
+    try {
+      const alarmSound = require('./Audio/alarm.mp3');
+      const { sound: alarm } = await Audio.Sound.createAsync(alarmSound);
+      await alarm.playAsync();
+    } catch (error) {
+      console.log('Error playing ring alarm sound:', error);
+    }
+  };  
+
+
+  const playTrack = async (track) => {
+    if (isPlaying) {
+      await pauseTrack();
+    }
+  
+    setSelectedTrack(track);
+  
+    try {
+      const filePath = trackFilePaths[track];
+      console.log('File path:', filePath);
+  
+      const newSound = new Audio.Sound();
+      await newSound.loadAsync(filePath);
+  
+      if (currentTrackIndex === null || currentTrackIndex === track) {
+        // Resume playback from the stored playback position
+        if (playbackPosition) {
+          await newSound.playFromPositionAsync(playbackPosition);
+        } else {
+          await newSound.playAsync();
+        }
+      } else {
+        await newSound.playAsync();
+      }
+  
+      // Enable looping for the new sound object
+      await newSound.setIsLoopingAsync(true);
+  
+      setSound(newSound);
+      setIsPlaying(true);
+      setCurrentTrackIndex(track);
+  
+      const playbackStatusUpdate = async (status) => {
+        if (!status.isLoaded && status.error) {
+          console.log('Error playing audio:', status.error);
+          await skipToNextTrack();
+        }
+      };
+  
+      newSound.setOnPlaybackStatusUpdate(playbackStatusUpdate);
+    } catch (error) {
+      console.log('Error playing audio:', error);
+    }
+  };
+  
+  const pauseTrack = async () => {
+    if (sound && isPlaying) {
+      try {
+        const status = await sound.getStatusAsync();
+        if (status.isLoaded && status.isPlaying) {
+          setPlaybackPosition(status.positionMillis);
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        }
+      } catch (error) {
+        console.log('Error pausing audio:', error);
+      }
+    }
+  };
+
+  const skipToNextTrack = async () => {
+    try {
+      if (sound && sound.getStatusAsync().isLoaded) {
+        // Pause the current track
+        await sound.pauseAsync();
+        setIsPlaying(false);
+  
+        // Unload the current track
+        await sound.unloadAsync();
+      }
+    
+      // Get the array of track names
+      const tracks = Object.keys(trackFilePaths);
+    
+      // Find the index of the currently selected track
+      const currentIndex = tracks.findIndex((track) => track === selectedTrack);
+    
+      // Determine the index of the next track
+      const nextIndex = (currentIndex + 1) % tracks.length;
+    
+      // Get the name of the next track
+      const nextTrack = tracks[nextIndex];
+    
+      // Play the next track
+      await playTrack(nextTrack);
+    } catch (error) {
+      console.log("Error skipping to next track:", error);
+    }
+  };
+
+  const skipToPreviousTrack = async () => {
+    try {
+      if (sound && sound.getStatusAsync().isLoaded) {
+        // Unload the current track
+        await sound.unloadAsync();
+        setSound(null);
+      }
+  
+      // Get the array of track names
+      const tracks = Object.keys(trackFilePaths);
+  
+      // Find the index of the currently selected track
+      const currentIndex = tracks.findIndex((track) => track === selectedTrack);
+  
+      // Determine the index of the previous track
+      const previousIndex = (currentIndex - 1 + tracks.length) % tracks.length;
+  
+      // Get the name of the previous track
+      const previousTrack = tracks[previousIndex];
+  
+      if (previousTrack) {
+        // Play the previous track
+        await playTrack(previousTrack);
+      }
+    } catch (error) {
+      console.log("Error skipping to previous track:", error);
+    }
+  };  
+  
   const handleStart = () => {
     setActive(true);
   };
@@ -220,6 +367,40 @@ const PomodoroScreen = () => {
           </TouchableOpacity>
         )}
       </View>
+
+      <View style={styles.songContainer}>
+
+          {/* Pause and Skip buttons */}
+          <View style={styles.buttonsContainer}>
+          <TouchableOpacity onPress={skipToPreviousTrack}>
+            <Ionicons name="play-skip-back-sharp" size={17} color="#f7f7f7" />
+          </TouchableOpacity>
+
+          {!sound || !isPlaying ? (
+            <TouchableOpacity onPress={() => playTrack(selectedTrack || 'Lofi Track 1')}>
+            <Ionicons name="play-sharp" size={24} color="#f7f7f7" />
+          </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={pauseTrack}
+            >
+              <Ionicons name="pause" size={24} color="#f7f7f7" />
+            </TouchableOpacity>
+          )}
+            <TouchableOpacity
+              onPress={skipToNextTrack}
+              disabled={!selectedTrack}
+            >
+              <Ionicons name="play-skip-forward-sharp" size={17} color="#f7f7f7" />
+            </TouchableOpacity>
+
+            {selectedTrack && (
+              <Text style={styles.currentTrackText}>{selectedTrack}</Text>
+            )}
+            
+          </View>      
+        </View>
+
     </View>
   );
 };
@@ -282,6 +463,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#478C5C",
     width: 50,
     height: 50,
+  },
+  currentTrackText: {
+    justifyContent: 'center',
+    textAlign: 'center',
+    alignItems: 'center',
+    fontFamily: 'popMedium',
+    fontSize: 16,
+    color: '#f7f7f7'
+  },
+  songContainer: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: '#191C26', // Adjust the background color as needed
+    padding: '4%',
   }
 });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Modal, Image } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Modal, Image, ActivityIndicator } from 'react-native';
 import TextInput from '../../components/TextInput';
 import { MaterialIcons } from '@expo/vector-icons'; 
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import Button from '../../components/Button';
 import { firestore, auth, firebase } from '../../../firebase.js';
 import Toast from '../../components/Toast';
 import { API_KEY, GPT_LINK } from '@env';
+import { Alert } from 'react-native';
 
 const ShareYourWorriesScreen = ({ navigation }) => {
   const [generatedPrompt, setGeneratedPrompt] = useState('');
@@ -22,6 +23,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
   const [showPrompt, setShowPrompt] = useState(false);
   const startOfDay = new Date().setHours(0, 0, 0, 0);
   const endOfDay = new Date().setHours(23, 59, 59, 999);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchDiaryEntries = async () => {
@@ -71,43 +73,85 @@ const ShareYourWorriesScreen = ({ navigation }) => {
       setToastMessage('A diary entry for today already exists!');
       return;
     }
-
-    try {
-      const response = await fetch(GPT_LINK, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`, // Use the environment variables
+    Alert.alert(
+      'Reflection Detailed Enough?',
+      'Editing your entry is not allowed. Are you sure you want to proceed?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
         },
-        body: JSON.stringify({
-          prompt: message + '.give me an encouragement message to make my day. use humanlike voice and min 40 words.',
-          max_tokens: 70,
-        }),
-      });
-
-      const data = await response.json();
-      console.log('API Response:', data);
-      console.log("#####DATA CHOICES");
-      await setGeneratedPrompt(data.choices[0].text);
-      console.log(data.choices[0].text);
-      console.log("#########GENERATED PROMPT");
-      console.log(generatedPrompt)
-
-      await addToDiary(data.choices[0].text); // Add the diary entry when the user presses the button
-
-      if (data.choices[0].text) { //data.choice[0].text
-        navigation.navigate('GeneratedPrompt', { generatedPrompt: data.choices[0].text })
-      } else {
-        setToastMessage('Failed to generate prompt. Please try again!');
-      }
-
-    } catch (error) {
-      console.error('Error:', error);
-    }
+        {
+          text: 'Proceed',
+          style: 'default',
+          onPress: () => {
+            setIsLoading(true); // Set loading state to true
+            // Proceed with generating the prompt and adding the diary entry
+            generatePrompt().then(() => {
+              setIsLoading(false); // Set loading state to false
+            });
+          },
+        },
+      ],
+    );
     //const generatedPrompt = "Tears may fall, but your spirit won't break. Embrace the pain as a stepping stone to growth. You are resilient, worthy of love, and destined for happiness. Keep shining, healing, and believing in brighter tomorrows. You've got this!";
     //setGeneratedPrompt(generatedPrompt);
     //await addToDiary(generatedPrompt);
+  };
 
+  const generatePrompt = async () => {
+    try {
+      let generatedPrompt = '';
+  
+      while (true) {
+        // Generate the prompt using the API call
+        const response = await fetch(GPT_LINK, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
+            prompt: message + '.Give me an encouragement message to make my day. Speak to me personally with min 40 words. Finish your sentence.',
+            max_tokens: 80,
+            top_p: 0.7,
+            temperature: 0.8
+          }),
+        });
+  
+        const data = await response.json();
+        console.log('API Response:', data);
+        console.log('Generated Prompt:', data.choices[0].text);
+  
+        generatedPrompt = data.choices[0].text;
+        
+        // VALIDATION CHECKS.
+        // Check if generated prompt ends with punctuation
+        const lastChar = generatedPrompt.trim().slice(-1);
+        if (!['.', '!', '?'].includes(lastChar)) {
+          // Remove text after the last punctuation mark
+          const lastIndex = generatedPrompt.search(/[.!?]/g);
+          if (lastIndex >= 0) {
+            generatedPrompt = generatedPrompt.substring(0, lastIndex + 1);
+          }
+        }
+  
+        // Check if generated prompt has at least 40 words
+        const wordCount = generatedPrompt.trim().split(' ').length;
+        if (wordCount >= 40) {
+          // If the prompt passes the validation checks, break the loop and proceed
+          break;
+        }
+      }
+  
+      await setGeneratedPrompt(generatedPrompt);
+      await addToDiary(generatedPrompt); // Add the diary entry when the user presses the button
+  
+      navigation.navigate('GeneratedPrompt', { generatedPrompt });
+    } catch (error) {
+      console.error('Error:', error);
+      navigation.goBack();
+    }
   };
 
   const renderEmojiImage = () => {
@@ -170,19 +214,18 @@ const ShareYourWorriesScreen = ({ navigation }) => {
     setGeneratedPrompt(''); // Clear the selected prompt after adding to the diary
   };
 
-  const renderEmptyDiary = () => {
-    // Sort diaryEntries by timestamp in ascending order
-    const sortedEntries = diaryEntries.sort(
-      (a, b) => a.timestamp.toDate() - b.timestamp.toDate()
-    );
-    // Get the three most recent entries
-    const recentEntries = sortedEntries.slice(-3).reverse();
+  const currentDate = new Date();
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(currentDate.getDate() - 3);
   
+  const recentEntries = diaryEntries.filter(entry => entry.timestamp.toDate() >= threeDaysAgo); 
+  
+  const renderEmptyDiary = () => {
     const flipCard = () => {
       setShowBenefits(!showBenefits);
     };
-  
-    if (!recentEntries.length) {
+
+    if (recentEntries.length === 0) {
       return (
         <TouchableOpacity style={styles.emptyDiaryContainer} onPress={flipCard}>
           <View style={styles.emptyDiaryCard}>
@@ -208,14 +251,16 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           </View>
         </TouchableOpacity>
       );
-    } else {
-      return null;
     }
-  };
+  
+    return null;
+  };  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.topContainer}>
+          {/* Loading indicator */}
+          {isLoading && <ActivityIndicator />}
             <Text style={styles.headText}>Hi {userName}, how was your day like today?</Text>
             <View style={styles.circle}>
               {renderEmojiImage()}
@@ -289,7 +334,7 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {diaryEntries.length === 0 ? (
+        {(!recentEntries || recentEntries.length === 0) ? (
           renderEmptyDiary()
         ) : (
         <View style={styles.btmContainer}>
@@ -341,7 +386,8 @@ const ShareYourWorriesScreen = ({ navigation }) => {
                       <Ionicons name="close-circle" size={24} color="black" />
                     </TouchableOpacity>
                     <Text style={styles.brand}>StudyPals</Text>
-                    <Text style={styles.quote}>Dear {userName}. {generatedPrompt}</Text>
+                    <Text style={styles.quote}>Dear {userName}. {'\n'}</Text>
+                    <Text style={styles.quote}>{generatedPrompt.trim()}</Text>
                   </View>
                 </View>
               </Modal>
@@ -447,7 +493,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     width: '90%',
-    height: '55%',
+    height: '65%',
   },
   emojiContainer: {
     flexWrap: 'wrap',
