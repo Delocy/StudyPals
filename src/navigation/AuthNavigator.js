@@ -14,6 +14,7 @@ import ResourcesScreen from '../screens/HomeScreen/Resources';
 import TimerAnalyticsScreen from '../screens/HomeScreen/TimerAnalyticsScreen/TimerAnalyticsScreen';
 import DiaryAnalyticsScreen from '../screens/HomeScreen/DiaryAnalytics';
 import GeneratedPromptScreen from '../screens/ShareYourWorriesScreen/GeneratedPromptScreen';
+import FriendsScreen from '../screens/ProfileScreen/Friends';
 import ProductivityProfileScreen from '../screens/HomeScreen/TimerAnalyticsScreen/ProductivityProfileScreen';
 import NoTimerDataScreen from '../screens/HomeScreen/TimerAnalyticsScreen/NoTimerDataScreen';
 
@@ -36,6 +37,7 @@ function AuthNavigator() {
         <Stack.Screen name="Resources" component={ResourcesScreen} />
         <Stack.Screen name="Timer Analytics" component={TimerAnalyticsScreen} />
         <Stack.Screen name="Diary Analytics" component={DiaryAnalyticsScreen} />
+        <Stack.Screen name="Friends" component={FriendsScreen} />
         <Stack.Screen name="Productivity Profile" component={ProductivityProfileScreen} />
         <Stack.Screen name="No Timer" component={NoTimerDataScreen} />
       </Stack.Navigator>

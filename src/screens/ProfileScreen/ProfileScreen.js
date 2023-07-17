@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { firestore, auth } from '../../firebase';
-import { logoutUser } from '../api/auth-api';
+import { firestore, auth } from '../../../firebase';
+import { logoutUser } from '../../api/auth-api';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileScreen = () => {
-  const [avatar, setAvatar] = useState(require('./HomeScreen/Images/avatar.png'));
+  const navigation = useNavigation();
+  const [avatar, setAvatar] = useState(require('../HomeScreen/Images/avatar.png'));
   const [completedTasks, setCompletedTasks] = useState([]);
   const [hrsFocused, setHrsFocused] = useState(0);
+  const [showUserId, setShowUserId] = useState(false);
 
   useEffect(() => {
     const fetchTimerData = async () => {
@@ -21,7 +24,7 @@ const ProfileScreen = () => {
 
         if (timerDoc.exists) {
           const timerData = timerDoc.data();
-          console.log(timerData);
+          // console.log(timerData);
 
           // Calculate the total hours spent
           const totalHoursSpent = Object.values(timerData).reduce(
@@ -37,7 +40,6 @@ const ProfileScreen = () => {
             .get();
 
           const completedTasks = tasksQuerySnapshot.docs.map((doc) => doc.data());
-
           // Update the completedTasks state and check for achievements
           setCompletedTasks(completedTasks);
           setHrsFocused(totalHoursSpent);
@@ -47,9 +49,18 @@ const ProfileScreen = () => {
         Alert.alert('Error', 'Failed to fetch timer data. Please try again.');
       }
     };
-
     fetchTimerData();
   }, []);
+
+  const renderFriendRequestsHeader = () => (
+    <TouchableOpacity style={styles.friendsButton} onPress={navigateToFriendList}>
+      <Text style={styles.friendsButtonText}>Friends</Text>
+    </TouchableOpacity>
+  );
+
+  const navigateToFriendList = () => {
+    navigation.navigate('Friends');
+  };
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -69,14 +80,27 @@ const ProfileScreen = () => {
       setAvatar({ uri: result.uri });
     }
   };
-
+  
   return (
     <View style={styles.container}>
+      {renderFriendRequestsHeader()}
       <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
         <Image source={avatar} style={styles.avatar} />
       </TouchableOpacity>
 
       <Text style={styles.username}>{auth.currentUser?.displayName}</Text>
+      {showUserId && (
+      <TouchableOpacity style={styles.userIdContainer} onPress={() => setShowUserId(false)}>
+        <Text style={styles.userIdText}>{auth.currentUser?.uid}</Text>
+      </TouchableOpacity>
+      )}
+
+      {!showUserId && (
+        <TouchableOpacity style={styles.userIdContainer} onPress={() => setShowUserId(true)}>
+          <Text style={styles.showUserIdText}>Tap to view User ID</Text>
+        </TouchableOpacity>
+      )}
+
 
       <View style={styles.achievementTitle}>
         <Text style={styles.sectionTitle}>Achievements</Text>
@@ -85,19 +109,19 @@ const ProfileScreen = () => {
       <View style={styles.achievementsContainer}>
         {completedTasks.length >= 1 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/1.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/1.png')} style={styles.achievementIcon} />
           </View>
         )}
 
         {completedTasks.length >= 3 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/2.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/2.png')} style={styles.achievementIcon} />
           </View>
         )}
 
         {completedTasks.length >= 10 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/3.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/3.png')} style={styles.achievementIcon} />
           </View>
         )}
 
@@ -107,19 +131,19 @@ const ProfileScreen = () => {
       <View style={styles.achievementsContainer}>
         {hrsFocused >= 60 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/4.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/4.png')} style={styles.achievementIcon} />
           </View>
         )}
 
         {hrsFocused >= 600 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/5.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/5.png')} style={styles.achievementIcon} />
           </View>
         )}
 
         {hrsFocused >= 6000 && (
           <View style={styles.achievementRow}>
-            <Image source={require('./HomeScreen/Images/6.png')} style={styles.achievementIcon} />
+            <Image source={require('../HomeScreen/Images/6.png')} style={styles.achievementIcon} />
           </View>
         )}
       </View>
@@ -137,6 +161,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#E1F7E0',
   },
   avatarContainer: {
     alignItems: 'center',
@@ -186,6 +211,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   button: {
+    position: 'absolute',
+    bottom: 20,
     backgroundColor: '#478C5C',
     width: '100%',
     padding: 15,
@@ -194,7 +221,33 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
-    fontWeight: '700',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  userIdContainer: {
+    marginBottom: 10,
+  },
+  userIdText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'grey',
+    textDecorationLine: 'underline',
+  },
+  showUserIdText: {
+    fontSize: 16,
+    color: '#555',
+  },
+  friendsButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#478C5C',
+    padding: 10,
+    borderRadius: 5,
+  },
+  friendsButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
     fontSize: 16,
   },
 });
