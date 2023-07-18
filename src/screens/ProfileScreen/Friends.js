@@ -130,9 +130,9 @@ const FriendsScreen = ({ navigation }) => {
     const displayName = isFriendRequester ? item.friendNickname : item.userDisplayName;
 
     const navigateToFriendAchievements = () => {
-      navigation.navigate('Friend Achievements', { friendId: item.friendId });
+        navigation.navigate("Friend's Achievements", { friendId: item.friendId, userId: item.userId, friendName: item.friendNickname, userName: item.userDisplayName });
     };
-
+      
     return (
       <TouchableOpacity style={styles.friendItem} onPress={navigateToFriendAchievements}>
         <Text style={styles.friendName}>{displayName}</Text>

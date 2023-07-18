@@ -53,9 +53,14 @@ const ProfileScreen = () => {
   }, []);
 
   const renderFriendRequestsHeader = () => (
-    <TouchableOpacity style={styles.friendsButton} onPress={navigateToFriendList}>
-      <Text style={styles.friendsButtonText}>Friends</Text>
-    </TouchableOpacity>
+    <View style={styles.headerContainer}>
+      <TouchableOpacity style={styles.achievementsButton} onPress={navigateToAchievements}>
+        <Text style={styles.buttonText}>All Achievements</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.friendsButton} onPress={navigateToFriendList}>
+        <Text style={styles.friendsButtonText}>Friends</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   const navigateToFriendList = () => {
@@ -80,6 +85,10 @@ const ProfileScreen = () => {
       setAvatar({ uri: result.uri });
     }
   };
+
+  const navigateToAchievements = () => {
+  navigation.navigate('Achievements');
+};
   
   return (
     <View style={styles.container}>
@@ -151,6 +160,12 @@ const ProfileScreen = () => {
       <TouchableOpacity style={styles.button} onPress={logoutUser}>
         <Text style={styles.buttonText}>Sign out</Text>
       </TouchableOpacity>
+
+      {completedTasks.length === 0 && hrsFocused < 60 && (
+            <View style={styles.achievementRow}>
+              <Text style={styles.noAchievementsText}>No achievements achieved yet.</Text>
+            </View>
+          )}
     </View>
   );
 };
@@ -240,7 +255,7 @@ const styles = StyleSheet.create({
   friendsButton: {
     position: 'absolute',
     top: 10,
-    right: 10,
+    right: 1,
     backgroundColor: '#478C5C',
     padding: 10,
     borderRadius: 5,
@@ -249,6 +264,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 20,
+    position: 'absolute',
+    top: 10,
+  },
+  achievementsButton: {
+    position: 'absolute',
+    top: 10,
+    left: 1,
+    backgroundColor: '#478C5C',
+    padding: 10,
+    borderRadius: 5,
   },
 });
 
