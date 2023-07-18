@@ -6,35 +6,35 @@ const FriendsScreen = ({ navigation }) => {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [friendIdInput, setFriendIdInput] = useState('');
+  const [friendNicknameInput, setFriendNicknameInput] = useState('');
   const [friendRequestSent, setFriendRequestSent] = useState(false);
 
   useEffect(() => {
     const fetchFriends = async () => {
-        try {
-          const userId = auth.currentUser.uid;
-      
-          const friendsCollection = firestore.collection('friends');
-          const friendsQuerySnapshot = await friendsCollection
-            .where('userId', '==', userId)
-            .where('status', '==', 'accepted')
-            .get();
-      
-          const friendsData = friendsQuerySnapshot.docs.map((doc) => doc.data());
-      
-          const friendsQuerySnapshot2 = await friendsCollection
-            .where('friendId', '==', userId)
-            .where('status', '==', 'accepted')
-            .get();
-      
-          const friendsData2 = friendsQuerySnapshot2.docs.map((doc) => doc.data());
-          const allFriendsData = [...friendsData, ...friendsData2];
-          setFriends(allFriendsData);
-        } catch (error) {
-          console.error('Error fetching friends:', error);
-          Alert.alert('Error', 'Failed to fetch friends. Please try again.');
-        }
-      };
-      
+      try {
+        const userId = auth.currentUser.uid;
+
+        const friendsCollection = firestore.collection('friends');
+        const friendsQuerySnapshot = await friendsCollection
+          .where('userId', '==', userId)
+          .where('status', '==', 'accepted')
+          .get();
+
+        const friendsData = friendsQuerySnapshot.docs.map((doc) => doc.data());
+
+        const friendsQuerySnapshot2 = await friendsCollection
+          .where('friendId', '==', userId)
+          .where('status', '==', 'accepted')
+          .get();
+
+        const friendsData2 = friendsQuerySnapshot2.docs.map((doc) => doc.data());
+        const allFriendsData = [...friendsData, ...friendsData2];
+        setFriends(allFriendsData);
+      } catch (error) {
+        console.error('Error fetching friends:', error);
+        Alert.alert('Error', 'Failed to fetch friends. Please try again.');
+      }
+    };
 
     const fetchFriendRequests = async () => {
       try {
@@ -57,6 +57,7 @@ const FriendsScreen = ({ navigation }) => {
         Alert.alert('Error', 'Failed to fetch friend requests. Please try again.');
       }
     };
+
     fetchFriends();
     fetchFriendRequests();
   }, []);
@@ -81,30 +82,26 @@ const FriendsScreen = ({ navigation }) => {
     }
   };
 
-  const sendFriendRequest = async (friendId) => {
+  const sendFriendRequest = async (friendId, friendNickname) => {
     try {
       const userId = auth.currentUser.uid;
       const userDisplayName = auth.currentUser.displayName;
-  
-      // Fetch the friend's display name
-      const friendDoc = await firestore.collection('users').doc(friendId).get();
-      const friendDisplayName = friendDoc.data().displayName;
-  
+
       const requestExistsQuerySnapshot = await firestore
         .collection('friends')
         .where('userId', '==', userId)
         .where('friendId', '==', friendId)
         .get();
-  
+
       if (requestExistsQuerySnapshot.empty) {
         await firestore.collection('friends').add({
           userId,
           userDisplayName,
           friendId,
-          friendDisplayName,
+          friendNickname,
           status: 'pending',
         });
-  
+
         Alert.alert('Friend Request Sent');
         setFriendRequestSent(true);
       } else {
@@ -114,11 +111,11 @@ const FriendsScreen = ({ navigation }) => {
       console.error('Error sending friend request:', error);
       Alert.alert('Error', 'Failed to send friend request. Please try again.');
     }
-  };  
+  };
 
   const renderFriendRequestItem = ({ item }) => (
     <View style={styles.friendRequest}>
-      <Text style={styles.friendRequestId}>{item.userId}</Text>
+      <Text style={styles.friendRequestId}>{item.userDisplayName}</Text>
       <TouchableOpacity
         style={styles.acceptButton}
         onPress={() => acceptFriendRequest(item.id)}
@@ -128,15 +125,24 @@ const FriendsScreen = ({ navigation }) => {
     </View>
   );
 
-  const renderFriendItem = ({ item }) => (
-    <View style={styles.friendItem}>
-      <Text style={styles.friendName}>{item.friendDisplayName}</Text>
-    </View>
-  );
+  const renderFriendItem = ({ item }) => {
+    const isFriendRequester = item.userId === auth.currentUser.uid;
+    const displayName = isFriendRequester ? item.friendNickname : item.userDisplayName;
+
+    const navigateToFriendAchievements = () => {
+      navigation.navigate('Friend Achievements', { friendId: item.friendId });
+    };
+
+    return (
+      <TouchableOpacity style={styles.friendItem} onPress={navigateToFriendAchievements}>
+        <Text style={styles.friendName}>{displayName}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Friends</Text>
+      <Text style={styles.title}>My Friends</Text>
 
       {friends.length > 0 ? (
         <FlatList
@@ -149,32 +155,40 @@ const FriendsScreen = ({ navigation }) => {
         <Text style={styles.emptyText}>No friends found.</Text>
       )}
 
-      <Text style={styles.sectionTitle}>Friend Requests</Text>
-      {friendRequests.length > 0 ? (
-        <FlatList
-          data={friendRequests}
-          renderItem={renderFriendRequestItem}
-          keyExtractor={(item) => item.id}
-          style={styles.friendRequestsList}
-        />
-      ) : (
-        <Text style={styles.emptyText}>No friend requests.</Text>
-      )}
+      <View style={styles.friendRequestAdd}>
+        <Text style={styles.sectionTitle}>Friend Requests</Text>
+        {friendRequests.length > 0 ? (
+            <FlatList
+            data={friendRequests}
+            renderItem={renderFriendRequestItem}
+            keyExtractor={(item) => item.id}
+            style={styles.friendRequestsList}
+            />
+        ) : (
+            <Text style={styles.emptyText}>No friend requests.</Text>
+        )}
 
-      <Text style={styles.sectionTitle}>Add Friend</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Friend ID"
-        onChangeText={setFriendIdInput}
-        value={friendIdInput}
-      />
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => sendFriendRequest(friendIdInput)}
-        disabled={friendRequestSent}
-      >
-        <Text style={styles.buttonText}>{friendRequestSent ? 'Request Sent' : 'Add Friend'}</Text>
-      </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Add Friend</Text>
+        <TextInput
+            style={styles.input}
+            placeholder="Enter Friend's Nickname"
+            onChangeText={setFriendNicknameInput}
+            value={friendNicknameInput}
+        />
+        <TextInput
+            style={styles.input}
+            placeholder="Enter Friend's ID"
+            onChangeText={setFriendIdInput}
+            value={friendIdInput}
+        />
+        <TouchableOpacity
+            style={styles.button}
+            onPress={() => sendFriendRequest(friendIdInput, friendNicknameInput)}
+            disabled={friendRequestSent}
+        >
+            <Text style={styles.buttonText}>{friendRequestSent ? 'Request Sent' : 'Add Friend'}</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -183,10 +197,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#E1F7E0',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'popSemiBold',
     marginBottom: 20,
   },
   friendList: {
@@ -200,6 +215,7 @@ const styles = StyleSheet.create({
   },
   friendName: {
     fontSize: 16,
+    fontFamily: 'popSemiBold',
   },
   friendRequestsList: {
     flex: 1,
@@ -212,6 +228,7 @@ const styles = StyleSheet.create({
   friendRequestId: {
     fontSize: 16,
     marginRight: 10,
+    fontFamily: 'popRegular',
   },
   acceptButton: {
     backgroundColor: '#478C5C',
@@ -225,7 +242,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'popSemiBold',
     marginBottom: 10,
   },
   input: {
@@ -236,6 +253,8 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 10,
     marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    fontFamily: 'popRegular',
   },
   button: {
     backgroundColor: '#478C5C',
@@ -253,7 +272,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
+    marginTop: 10,
   },
+  friendRequestAdd: {
+    backgroundColor:'#ffffff',
+    padding: 20,
+    borderRadius: 20,
+  }
 });
 
 export default FriendsScreen;
