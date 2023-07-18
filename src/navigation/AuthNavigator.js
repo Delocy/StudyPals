@@ -17,6 +17,8 @@ import GeneratedPromptScreen from '../screens/ShareYourWorriesScreen/GeneratedPr
 import FriendsScreen from '../screens/ProfileScreen/Friends';
 import ProductivityProfileScreen from '../screens/HomeScreen/TimerAnalyticsScreen/ProductivityProfileScreen';
 import NoTimerDataScreen from '../screens/HomeScreen/TimerAnalyticsScreen/NoTimerDataScreen';
+import FriendAchievementsScreen from '../screens/ProfileScreen/FriendAchievement';
+import AchievementScreen from '../screens/ProfileScreen/Achievements';
 
 function AuthNavigator() {
     const Stack = createNativeStackNavigator();
@@ -38,8 +40,11 @@ function AuthNavigator() {
         <Stack.Screen name="Timer Analytics" component={TimerAnalyticsScreen} />
         <Stack.Screen name="Diary Analytics" component={DiaryAnalyticsScreen} />
         <Stack.Screen name="Friends" component={FriendsScreen} />
+        <Stack.Screen name="Achievements" component={AchievementScreen} />
+        <Stack.Screen name="Friend's Achievements" component={FriendAchievementsScreen} />
         <Stack.Screen name="Productivity Profile" component={ProductivityProfileScreen} />
         <Stack.Screen name="No Timer" component={NoTimerDataScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
