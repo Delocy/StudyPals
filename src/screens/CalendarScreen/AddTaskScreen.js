@@ -13,6 +13,7 @@ const AddTaskScreen = ({ route, navigation }) => {
   const [isEndTimePickerVisible, setEndTimePickerVisible] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [customTag, setCustomTag] = useState('');
+  const [isAddPressed, setIsAddPressed] = useState(false); 
   const availableTags = [
     { name: 'School', color: '#ECEAFF', selectedColor: '#8F81FE', textColor: '#8F81FE', selectedTextColor: '#FFFFFF' },
     { name: 'Home', color: '#FFEFEB', selectedColor: '#F0A58E', textColor: '#F0A58E', selectedTextColor: '#FFFFFF' },
@@ -36,6 +37,13 @@ const AddTaskScreen = ({ route, navigation }) => {
       alert('Please fill all required fields');
       return;
     }
+
+    if (isAddPressed && customTag) {
+      // Add the custom tag if "Add" button is pressed and customTag is not empty
+      setSelectedTags([...selectedTags, customTag]);
+      setCustomTag('');
+    }
+
     try {
       const user = auth.currentUser;
       if (user) {
@@ -46,7 +54,7 @@ const AddTaskScreen = ({ route, navigation }) => {
           startTime: taskStartTime,
           endTime: taskEndTime,
           time: route.params.date,
-          tags: selectedTags.concat(customTag),
+          tags: selectedTags,
           userId: user.uid,
           completed: false,
         };
@@ -230,6 +238,7 @@ const AddTaskScreen = ({ route, navigation }) => {
             onPress={() => {
               if (customTag) {
                 toggleTag(customTag);
+                setIsAddPressed(true)
                 setCustomTag('');
               }
             }}
