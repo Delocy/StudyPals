@@ -38,6 +38,11 @@ const AddTaskScreen = ({ route, navigation }) => {
       return;
     }
 
+    if (taskEndTime < taskStartTime) {
+      alert('End time cannot be earlier than start time');
+      return;
+    }
+
     if (isAddPressed && customTag) {
       // Add the custom tag if "Add" button is pressed and customTag is not empty
       setSelectedTags([...selectedTags, customTag]);
