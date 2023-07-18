@@ -59,8 +59,7 @@
     "react-native-virtualized-view": "^1.0.0",
     "react-navigation": "^4.4.4",
     "temp-dir": "^3.0.0",
-    "use-streak": "^1.0.4",
-    "expo-image-picker": "~14.1.1"
+    "use-streak": "^1.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.22.5",
