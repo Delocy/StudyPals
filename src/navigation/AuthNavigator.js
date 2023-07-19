@@ -1,10 +1,10 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SplashScreen from '../screens/SplashScreen';
-import LoginScreen from '../screens/LoginScreen';
+import SplashScreen from '../screens/AuthenticationScreen/SplashScreen';
+import LoginScreen from '../screens/AuthenticationScreen/LoginScreen';
 import TabNavigator from './TabNavigator';
-import RegisterScreen from '../screens/RegisterScreen';
-import ResetPasswordScreen from '../screens/ResetPasswordScreen';
+import RegisterScreen from '../screens/AuthenticationScreen/RegisterScreen';
+import ResetPasswordScreen from '../screens/AuthenticationScreen/ResetPasswordScreen';
 import AddTaskScreen from '../screens/CalendarScreen/AddTaskScreen';
 import EmojiPickerScreen from '../screens/ShareYourWorriesScreen/EmojiPickerScreen';
 import DiaryEntriesScreen from '../screens/ShareYourWorriesScreen/DiaryEntriesScreen';

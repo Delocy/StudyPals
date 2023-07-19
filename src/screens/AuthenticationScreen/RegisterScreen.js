@@ -1,31 +1,37 @@
 import { useState } from 'react'
-import { TouchableOpacity, StyleSheet, View } from 'react-native'
+import { View, StyleSheet, TouchableOpacity } from 'react-native'
 import { Text } from 'react-native-paper'
-import Background from '../components/Background'
-import Header from '../components/Header'
-import Button from '../components/Button'
-import TextInput from '../components/TextInput'
-import { emailValidator } from '../helpers/emailValidator'
-import { passwordValidator } from '../helpers/passwordValidator'
-import { loginUser } from '../api/auth-api'
-import Toast from '../components/Toast'
+import Background from '../../components/Background'
+import Header from '../../components/Header'
+import Button from '../../components/Button'
+import TextInput from '../../components/TextInput'
+import { emailValidator } from '../../helpers/emailValidator'
+import { passwordValidator } from '../../helpers/passwordValidator'
+import { nameValidator } from '../../helpers/nameValidator'
+import { signUpUser } from '../../api/auth-api'
+import Toast from '../../components/Toast'
+import BackButton from '../../components/BackButton'
 
-export default function LoginScreen({ navigation }) {
+export default function RegisterScreen({ navigation }) {
+  const [name, setName] = useState({ value: '', error: '' })
   const [email, setEmail] = useState({ value: '', error: '' })
   const [password, setPassword] = useState({ value: '', error: '' })
   const [loading, setLoading] = useState()
   const [error, setError] = useState()
 
-  const onLoginPressed = async () => {
+  const onSignUpPressed = async () => {
+    const nameError = nameValidator(name.value)
     const emailError = emailValidator(email.value)
     const passwordError = passwordValidator(password.value)
-    if (emailError || passwordError) {
+    if (emailError || passwordError || nameError) {
+      setName({ ...name, error: nameError })
       setEmail({ ...email, error: emailError })
       setPassword({ ...password, error: passwordError })
       return
     }
     setLoading(true)
-    const response = await loginUser({
+    const response = await signUpUser({
+      name: name.value,
       email: email.value,
       password: password.value,
     })
@@ -37,7 +43,16 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <Background>
-      <Header>Welcome back.</Header>
+      <BackButton goBack={() => navigation.replace('Login')}/>
+      <Header>Create Account</Header>
+      <TextInput
+        label="Name"
+        returnKeyType="next"
+        value={name.value}
+        onChangeText={(text) => setName({ value: text, error: '' })}
+        error={!!name.error}
+        errorText={name.error}
+      />
       <TextInput
         label="Email"
         returnKeyType="next"
@@ -59,20 +74,18 @@ export default function LoginScreen({ navigation }) {
         errorText={password.error}
         secureTextEntry
       />
-      <View style={styles.forgotPassword}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ResetPassword')}
-        >
-          <Text style={styles.forgot}>Forgot your password?</Text>
-        </TouchableOpacity>
-      </View>
-      <Button loading={loading} mode="contained" onPress={onLoginPressed}>
-        Login
+      <Button
+        loading={loading}
+        mode="contained"
+        onPress={onSignUpPressed}
+        style={{ marginTop: 24 }}
+      >
+        Sign Up
       </Button>
       <View style={styles.row}>
-        <Text>Don’t have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.replace('Register')}>
-          <Text style={styles.link}>Sign up</Text>
+        <Text>Already have an account? </Text>
+        <TouchableOpacity onPress={() => navigation.replace('Login')}>
+          <Text style={styles.link}>Login</Text>
         </TouchableOpacity>
       </View>
       <Toast message={error} onDismiss={() => setError('')} />
@@ -81,17 +94,9 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  forgotPassword: {
-    width: '100%',
-    alignItems: 'flex-end',
-    marginBottom: 24,
-  },
   row: {
     flexDirection: 'row',
-    marginTop: 5,
-  },
-  forgot: {
-    fontSize: 12,
+    marginTop: 4,
   },
   link: {
     color: '#478C5C',
