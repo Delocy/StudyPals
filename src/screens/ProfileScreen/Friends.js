@@ -20,7 +20,10 @@ const FriendsScreen = ({ navigation }) => {
           .where('status', '==', 'accepted')
           .get();
 
-        const friendsData = friendsQuerySnapshot.docs.map((doc) => doc.data());
+          const friendsData = friendsQuerySnapshot.docs.map((doc) => ({
+            id: doc.id, // Include the document ID in the data
+            ...doc.data(),
+          }));
 
         const friendsQuerySnapshot2 = await friendsCollection
           .where('friendId', '==', userId)
