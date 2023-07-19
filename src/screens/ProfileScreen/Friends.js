@@ -68,6 +68,14 @@ const FriendsScreen = ({ navigation }) => {
         status: 'accepted',
       });
 
+      const updatedFriends = friends.map((friend) => {
+        if (friend.id === requestId) {
+          return { ...friend, status: 'accepted' };
+        }
+        return friend;
+      });
+      setFriends(updatedFriends);
+
       const friendRequestsQuerySnapshot = await firestore
         .collection('friends')
         .where('friendId', '==', auth.currentUser.uid)
@@ -84,6 +92,10 @@ const FriendsScreen = ({ navigation }) => {
 
   const sendFriendRequest = async (friendId, friendNickname) => {
     try {
+      if (!friendId || !friendNickname) {
+        Alert.alert('Please fill in both the Friend ID and Friend Nickname fields.');
+        return;
+      }
       const userId = auth.currentUser.uid;
       const userDisplayName = auth.currentUser.displayName;
 
@@ -104,11 +116,12 @@ const FriendsScreen = ({ navigation }) => {
 
         Alert.alert('Friend Request Sent');
         setFriendRequestSent(true);
+        setFriendIdInput('');
+        setFriendNicknameInput('');
       } else {
         Alert.alert('Friend Request Already Sent');
       }
     } catch (error) {
-      console.error('Error sending friend request:', error);
       Alert.alert('Error', 'Failed to send friend request. Please try again.');
     }
   };
@@ -154,20 +167,20 @@ const FriendsScreen = ({ navigation }) => {
       ) : (
         <Text style={styles.emptyText}>No friends found.</Text>
       )}
-
-      <View style={styles.friendRequestAdd}>
+    
+      <View style={styles.friendRequestListContainer}>
         <Text style={styles.sectionTitle}>Friend Requests</Text>
-        {friendRequests.length > 0 ? (
-            <FlatList
-            data={friendRequests}
-            renderItem={renderFriendRequestItem}
-            keyExtractor={(item) => item.id}
-            style={styles.friendRequestsList}
-            />
-        ) : (
-            <Text style={styles.emptyText}>No friend requests.</Text>
+          {friendRequests.length > 0 ? (
+              <FlatList
+              data={friendRequests}
+              renderItem={renderFriendRequestItem}
+              keyExtractor={(item) => item.id}
+              style={styles.friendRequestsList}
+            />            
+          ) : (
+              <Text style={styles.emptyText}>No friend requests.</Text>
         )}
-
+      <View style={styles.friendRequestAdd}>
         <Text style={styles.sectionTitle}>Add Friend</Text>
         <TextInput
             style={styles.input}
@@ -188,6 +201,7 @@ const FriendsScreen = ({ navigation }) => {
         >
             <Text style={styles.buttonText}>{friendRequestSent ? 'Request Sent' : 'Add Friend'}</Text>
         </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -216,6 +230,9 @@ const styles = StyleSheet.create({
   friendName: {
     fontSize: 16,
     fontFamily: 'popSemiBold',
+  },
+  friendRequestListContainer: {
+    flex: 1,
   },
   friendRequestsList: {
     flex: 1,
@@ -278,6 +295,7 @@ const styles = StyleSheet.create({
     backgroundColor:'#ffffff',
     padding: 20,
     borderRadius: 20,
+    marginTop: 70,
   }
 });
 
