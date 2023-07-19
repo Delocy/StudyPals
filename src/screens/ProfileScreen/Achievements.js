@@ -18,7 +18,7 @@ const AchievementScreen = () => {
           <View style={styles.achievementRow}>
             <Image source={require('../HomeScreen/Images/2.png')} style={styles.achievementIcon} />
             <View style={styles.achievementDetails}>
-              <Text style={styles.achievementName}>Completed 10 Tasks</Text>
+              <Text style={styles.achievementName}>Completed 3 Tasks</Text>
               <Text style={styles.achievementDescription}>Achieve by completing 10 tasks.</Text>
             </View>
           </View>
@@ -26,7 +26,7 @@ const AchievementScreen = () => {
           <View style={styles.achievementRow}>
             <Image source={require('../HomeScreen/Images/3.png')} style={styles.achievementIcon} />
             <View style={styles.achievementDetails}>
-              <Text style={styles.achievementName}>Completed 100 Tasks</Text>
+              <Text style={styles.achievementName}>Completed 10 Tasks</Text>
               <Text style={styles.achievementDescription}>Achieve by completing 100 tasks.</Text>
             </View>
           </View>
