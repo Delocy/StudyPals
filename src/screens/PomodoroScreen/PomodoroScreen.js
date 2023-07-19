@@ -8,7 +8,6 @@ import { firestore, auth, firebase } from '../../../firebase.js';
 import { Audio } from 'expo-av';
 
 const trackFilePaths = {
-  'TESTING': require('./Audio/alarm.mp3'),
   'Lofi Track 1': require('./Audio/reflectedlight.mp3'),
   'Lofi Track 2': require('./Audio/bathroom.mp3'),
   'Lofi Track 3': require('./Audio/lifelike.mp3'),

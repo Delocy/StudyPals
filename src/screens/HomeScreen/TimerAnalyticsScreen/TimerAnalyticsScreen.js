@@ -540,12 +540,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   profileButtonText: {
-    color: 'black',
+    color: 'white',
     fontFamily: 'popMedium',
     paddingHorizontal: '2%',
     paddingVertical: '1%',
     fontStyle: 'italic',
-    fontSize: 17,
+    fontSize: 16,
     alignSelf: 'flex-end'
   },
   button: {
