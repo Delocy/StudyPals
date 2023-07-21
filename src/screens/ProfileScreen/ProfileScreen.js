@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'popRegular',
+    fontFamily: 'popSemiBold',
     marginBottom: 10,
   },
   achievementTitle: {
