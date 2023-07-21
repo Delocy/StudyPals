@@ -188,12 +188,14 @@ const FriendsScreen = ({ navigation }) => {
         <TextInput
             style={styles.input}
             placeholder="Enter Friend's Nickname"
+            placeholderTextColor="#777"
             onChangeText={setFriendNicknameInput}
             value={friendNicknameInput}
         />
         <TextInput
             style={styles.input}
             placeholder="Enter Friend's ID"
+            placeholderTextColor="#777"
             onChangeText={setFriendIdInput}
             value={friendIdInput}
         />
