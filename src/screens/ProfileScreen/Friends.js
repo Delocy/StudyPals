@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, TextInput,KeyboardAvoidingView } from 'react-native';
 import { firestore, auth } from '../../../firebase';
 
 const FriendsScreen = ({ navigation }) => {
@@ -157,6 +157,11 @@ const FriendsScreen = ({ navigation }) => {
   };
 
   return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 200 : 0}
+    >
     <View style={styles.container}>
       <Text style={styles.title}>My Friends</Text>
 
@@ -209,6 +214,7 @@ const FriendsScreen = ({ navigation }) => {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -300,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor:'#ffffff',
     padding: 20,
     borderRadius: 20,
-    marginTop: 70,
+    marginTop: 40,
   }
 });
 
