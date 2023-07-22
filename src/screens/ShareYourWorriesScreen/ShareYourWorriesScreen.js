@@ -112,8 +112,8 @@ const ShareYourWorriesScreen = ({ navigation }) => {
             'Authorization': `Bearer ${API_KEY}`,
           },
           body: JSON.stringify({
-            prompt: message + '.Give me an encouragement message to make my day. Speak to me personally with min 40 words. Finish your sentence.',
-            max_tokens: 80,
+            prompt: message + '.Give me an encouragement message to make my day. Speak to me personally with min 30 words. Finish your sentence.',
+            max_tokens: 90,
             top_p: 0.7,
             temperature: 0.8
           }),
@@ -136,9 +136,9 @@ const ShareYourWorriesScreen = ({ navigation }) => {
           }
         }
   
-        // Check if generated prompt has at least 40 words
+        // Check if generated prompt has at least 30 words
         const wordCount = generatedPrompt.trim().split(' ').length;
-        if (wordCount >= 40) {
+        if (wordCount >= 30) {
           // If the prompt passes the validation checks, break the loop and proceed
           break;
         }
