@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: '#CCCCCC',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 20,
