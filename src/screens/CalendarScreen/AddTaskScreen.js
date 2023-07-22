@@ -146,6 +146,7 @@ const AddTaskScreen = ({ route, navigation }) => {
       <TextInput
         style={styles.input}
         value={taskName}
+        placeholderTextColor="#777"
         onChangeText={setTaskName}
         placeholder="Enter task name"
       />
@@ -153,6 +154,7 @@ const AddTaskScreen = ({ route, navigation }) => {
       <TextInput
         style={styles.input}
         value={taskDescription}
+        placeholderTextColor="#777"
         onChangeText={setTaskDescription}
         placeholder="Enter task description"
       />
@@ -231,6 +233,7 @@ const AddTaskScreen = ({ route, navigation }) => {
             <TextInput
             style={styles.customTagInput}
             value={customTag}
+            placeholderTextColor="#777"
             onChangeText={setCustomTag}
             placeholder="Enter custom tag"
           />
