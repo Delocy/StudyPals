@@ -121,16 +121,18 @@ const EditTaskScreen = ({ route, navigation }) => {
       <TextInput
         style={styles.input}
         value={taskName}
+        placeholderTextColor="#777"
         onChangeText={setTaskName}
-        placeholder="Enter task name"
+        placeholder="Update task name"
       />
 
       <Text style={styles.label}>Description</Text>
       <TextInput
         style={styles.input}
         value={taskDescription}
+        placeholderTextColor="#777"
         onChangeText={setTaskDescription}
-        placeholder="Enter task description"
+        placeholder="Update task description"
       />
 
       {/* Display the selected task time */}
@@ -208,12 +210,13 @@ const EditTaskScreen = ({ route, navigation }) => {
           <TextInput
             style={styles.customTagInput}
             value={customTag}
+            placeholderTextColor="#777"
             onChangeText={setCustomTag}
             placeholder="Enter custom tag"
           />
           <TouchableOpacity
             style={[
-              styles.tagButton,
+              styles.customTagButton,
               { backgroundColor: customTag.trim() !== '' ? '#478C5C' : '#CCCCCC' },
             ]}
             onPress={handleAddCustomTag}
@@ -303,13 +306,20 @@ const styles = StyleSheet.create({
   },
   customTagInput: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: 'transparent',
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 8,
     paddingHorizontal: 10,
     fontFamily: 'popRegular',
   },
+  customTagButton: {
+    backgroundColor: '#CCCCCC',
+    borderRadius: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    margin: 4,
+  }
 });
 
 export default EditTaskScreen;
